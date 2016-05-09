@@ -2,14 +2,14 @@
 
 const React = require('react');
 const ReactDOM = require('react-dom');
-const $ = require('jquery');
+const Codemirror = require('react-codemirror');
 
 const Editor = React.createClass({
 	getInitialState: function(){
 		return({ data : 'Ecrivez ici...'});
 	},
-	onChange: function(e){
-		this.setState({data: this.refs.textarea.value});
+	onChange: function(newText){
+		this.setState({data: newText});
 	},
 	rawMarkup: function(){
 		return { __html: marked(this.state.data, {sanitize: true}) };
@@ -18,7 +18,7 @@ const Editor = React.createClass({
 		return(
 			<div>
 				<div dangerouslySetInnerHTML={this.rawMarkup()}></div>
-				<textarea onChange={this.onChange} ref="textarea" defaultValue={this.state.data}></textarea>
+				<Codemirror onChange={this.onChange} ref="textarea" defaultValue={this.state.data} />
 			</div>
 		);
 	}
@@ -28,7 +28,3 @@ ReactDOM.render(
 		<Editor />,
 		document.getElementById('main')
 );
-
-$(function(){
-var myCodeMirror = CodeMirror.fromTextArea($('textarea')[0]);
-});
