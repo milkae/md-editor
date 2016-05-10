@@ -2,7 +2,27 @@
 
 const React = require('react');
 const ReactDOM = require('react-dom');
+const CodeMirror = require('codemirror');
+require('codemirror/mode/markdown/markdown');
 
+const CMBox = React.createClass({
+	componentDidMount() {
+	    this.cm = CodeMirror(this.refs.editor, {
+	      value: this.props.defaultValue,
+	      mode: 'markdown',
+	      lineNumbers: true,
+	      autoCloseBrackets: true,
+	      matchBrackets: true,
+	      styleActiveLine: true
+	    });
+	    this.cm.on('change', (cm) => {
+	      this.props.onChange(cm.getValue());
+	    });
+	  },
+	  render() {
+	    return <div ref='editor' />
+	  }
+});
 
 const Editor = React.createClass({
 	getInitialState: function(){
@@ -12,10 +32,10 @@ const Editor = React.createClass({
 		}
 		return({ data : '...'});
 	},
-	onChange: function(){
-		let text = this.refs.textarea.value;
-		localStorage.setItem('storedText', text)
-		this.setState({data: text});
+	onChange: function(newText){
+		
+		localStorage.setItem('storedText', newText)
+		this.setState({data: newText});
 	},
 	rawMarkup: function(){
 		return { __html: marked(this.state.data, {sanitize: true}) };
@@ -24,7 +44,7 @@ const Editor = React.createClass({
 		return(
 			<div>
 				<div className="view" dangerouslySetInnerHTML={this.rawMarkup()}></div>
-				<textarea onChange={this.onChange} ref="textarea" defaultValue={this.state.data}></textarea>
+				<CMBox onChange={this.onChange}  defaultValue={this.state.data} />
 			</div>
 		);
 	}

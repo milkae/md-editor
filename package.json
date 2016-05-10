@@ -17,6 +17,7 @@
     "react-dom": "^0.14.7"
   },
   "dependencies": {
+    "codemirror": "file:codemirror",
     "react-codemirror": "^0.2.6"
   }
 }

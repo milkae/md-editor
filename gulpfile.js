@@ -5,7 +5,7 @@ require( 'elixir-jshint' );
 /**
  destination folder
  **/
-var dest = 'public/';
+var dest = 'assets/';
 
 //trailing slash required.
 elixir.config.assetsDir = 'resources/assets/'; 
