@@ -3,12 +3,13 @@
 const React = require('react');
 const ReactDOM = require('react-dom');
 const CodeMirror = require('codemirror');
+const $ = require('jquery');
 require('codemirror/mode/markdown/markdown');
 
 const CMBox = React.createClass({
 	componentDidMount() {
 	    this.cm = CodeMirror(this.refs.editor, {
-	      value: this.props.defaultValue,
+	      value: this.props.value,
 	      mode: 'markdown',
 	      theme: 'monokai',
 	      lineNumbers: true,
@@ -20,6 +21,11 @@ const CMBox = React.createClass({
 	      this.props.onChange(cm.getValue());
 	    });
 	  },
+	  componentWillReceiveProps(nextProps) {
+	    if (nextProps.value !== this.cm.getValue()) {
+			this.cm.setValue(nextProps.value);
+	    }
+	  },
 	  render() {
 	    return <div ref='editor'/>
 	  }
@@ -27,18 +33,35 @@ const CMBox = React.createClass({
 
 const Editor = React.createClass({
 	getInitialState: function(){
-		let storedText = localStorage.getItem('storedText');
-		if(storedText) {
-			return({ data : storedText});	
-		}
-		return({ data : '...'});
+		return {data : ''};
 	},
-	onChange: function(newText){
-		
-		localStorage.setItem('storedText', newText)
+	componentDidMount: function(){
+		this._loadStoredText();
+	},
+	_loadStoredText : function(){
+		$.ajax({
+			url: 'app.php',
+			type: 'GET',
+			dataType: 'json',
+			cache: false,
+			success: function(data){
+				this.setState({ data: data });
+			}.bind(this)
+		});
+	},
+	_storeText: function(){
+		$.ajax({
+			url: 'app.php',
+			type: 'POST',
+			dataType: 'json',
+			data : { data: this.state.data }
+		});
+	},
+	_onChange: function(newText){
+		this._storeText();
 		this.setState({data: newText});
 	},
-	rawMarkup: function(){
+	_rawMarkup: function(){
 		return { __html: marked(this.state.data, {sanitize: true}) };
 	},
 	render: function(){
@@ -46,11 +69,11 @@ const Editor = React.createClass({
 			<div>
 				<div className="view">
 					<h2>Aperçu</h2>
-					<div dangerouslySetInnerHTML={this.rawMarkup()}></div>
+					<div dangerouslySetInnerHTML={this._rawMarkup()}></div>
 				</div>
 				<div className="editor">
 					<h2>Editeur</h2>
-					<CMBox onChange={this.onChange}  defaultValue={this.state.data} />
+					<CMBox onChange={this._onChange} value={this.state.data} />
 				</div>
 			</div>
 		);
