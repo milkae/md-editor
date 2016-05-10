@@ -1,2 +1,10 @@
 // @import "node_modules/bootstrap-sass/assets/stylesheets/bootstrap";
-
+.view, textarea {
+	display: inline-block;
+	width : 49%;
+	vertical-align: top;
+	border: 1px solid #B63030;
+	background: #5D5C61;
+	color : white;
+	height : 600px;
+}

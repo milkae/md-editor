@@ -2,14 +2,20 @@
 
 const React = require('react');
 const ReactDOM = require('react-dom');
-const Codemirror = require('react-codemirror');
+
 
 const Editor = React.createClass({
 	getInitialState: function(){
-		return({ data : 'Ecrivez ici...'});
+		let storedText = localStorage.getItem('storedText');
+		if(storedText) {
+			return({ data : storedText});	
+		}
+		return({ data : '...'});
 	},
-	onChange: function(newText){
-		this.setState({data: newText});
+	onChange: function(){
+		let text = this.refs.textarea.value;
+		localStorage.setItem('storedText', text)
+		this.setState({data: text});
 	},
 	rawMarkup: function(){
 		return { __html: marked(this.state.data, {sanitize: true}) };
@@ -17,8 +23,8 @@ const Editor = React.createClass({
 	render: function(){
 		return(
 			<div>
-				<div dangerouslySetInnerHTML={this.rawMarkup()}></div>
-				<Codemirror onChange={this.onChange} ref="textarea" defaultValue={this.state.data} />
+				<div className="view" dangerouslySetInnerHTML={this.rawMarkup()}></div>
+				<textarea onChange={this.onChange} ref="textarea" defaultValue={this.state.data}></textarea>
 			</div>
 		);
 	}
