@@ -1,5 +1,6 @@
 // @import "node_modules/bootstrap-sass/assets/stylesheets/bootstrap";
-@import 'codemirror/theme/monokai';
+@import 'node_modules/codemirror/lib/codemirror';
+@import 'node_modules/codemirror/theme/monokai';
 .view, .editor {
 	display: inline-block;
 	width : 50%;
