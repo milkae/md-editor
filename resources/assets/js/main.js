@@ -13,8 +13,6 @@ const CMBox = React.createClass({
 	      mode: 'markdown',
 	      theme: 'monokai',
 	      lineNumbers: true,
-	      autoCloseBrackets: true,
-	      matchBrackets: true,
 	      styleActiveLine: true
 	    });
 	    this.cm.on('change', (cm) => {
@@ -50,7 +48,10 @@ const Editor = React.createClass({
 		});
 	},
 	_storeText: function(){
-		$.ajax({
+		if(this.xhr !== undefined){
+			this.xhr.abort();
+		}
+		this.xhr = $.ajax({
 			url: 'app.php',
 			type: 'POST',
 			dataType: 'json',

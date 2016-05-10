@@ -39215,8 +39215,6 @@ var CMBox = React.createClass({
 			mode: 'markdown',
 			theme: 'monokai',
 			lineNumbers: true,
-			autoCloseBrackets: true,
-			matchBrackets: true,
 			styleActiveLine: true
 		});
 		this.cm.on('change', function (cm) {
@@ -39254,7 +39252,10 @@ var Editor = React.createClass({
 		});
 	},
 	_storeText: function _storeText() {
-		$.ajax({
+		if (this.xhr !== undefined) {
+			this.xhr.abort();
+		}
+		this.xhr = $.ajax({
 			url: 'app.php',
 			type: 'POST',
 			dataType: 'json',
