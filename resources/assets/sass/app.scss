@@ -1,10 +1,31 @@
 // @import "node_modules/bootstrap-sass/assets/stylesheets/bootstrap";
-.view, textarea {
+@import 'codemirror/theme/monokai';
+.view, .editor {
 	display: inline-block;
-	width : 49%;
+	width : 50%;
 	vertical-align: top;
-	border: 1px solid #B63030;
-	background: #5D5C61;
-	color : white;
 	height : 600px;
+	box-sizing: border-box;
+}
+.view div{
+	box-sizing: border-box;
+	padding : 1%;
+	overflow: auto;
+	height : 600px;
+	background: #EEEEEE;
+}
+.CodeMirror {
+	height : 600px;
+}
+header h1, .view > h2, .editor > h2 {
+	text-align: center;
+}
+body {
+	background: #5D5C61;
+}
+header h1 {
+	color: #BF0727;
+}
+.editor > h2, .view > h2 {
+	color: #fff;
 }

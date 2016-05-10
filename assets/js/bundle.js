@@ -29368,6 +29368,7 @@ var CMBox = React.createClass({
 		this.cm = CodeMirror(this.refs.editor, {
 			value: this.props.defaultValue,
 			mode: 'markdown',
+			theme: 'monokai',
 			lineNumbers: true,
 			autoCloseBrackets: true,
 			matchBrackets: true,
@@ -29401,7 +29402,7 @@ var Editor = React.createClass({
 		return { __html: marked(this.state.data, { sanitize: true }) };
 	},
 	render: function render() {
-		return React.createElement('div', null, React.createElement('div', { className: 'view', dangerouslySetInnerHTML: this.rawMarkup() }), React.createElement(CMBox, { onChange: this.onChange, defaultValue: this.state.data }));
+		return React.createElement('div', null, React.createElement('div', { className: 'view' }, React.createElement('h2', null, 'Aperçu'), React.createElement('div', { dangerouslySetInnerHTML: this.rawMarkup() })), React.createElement('div', { className: 'editor' }, React.createElement('h2', null, 'Editeur'), React.createElement(CMBox, { onChange: this.onChange, defaultValue: this.state.data })));
 	}
 });
 

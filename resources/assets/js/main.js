@@ -10,6 +10,7 @@ const CMBox = React.createClass({
 	    this.cm = CodeMirror(this.refs.editor, {
 	      value: this.props.defaultValue,
 	      mode: 'markdown',
+	      theme: 'monokai',
 	      lineNumbers: true,
 	      autoCloseBrackets: true,
 	      matchBrackets: true,
@@ -20,7 +21,7 @@ const CMBox = React.createClass({
 	    });
 	  },
 	  render() {
-	    return <div ref='editor' />
+	    return <div ref='editor'/>
 	  }
 });
 
@@ -43,8 +44,14 @@ const Editor = React.createClass({
 	render: function(){
 		return(
 			<div>
-				<div className="view" dangerouslySetInnerHTML={this.rawMarkup()}></div>
-				<CMBox onChange={this.onChange}  defaultValue={this.state.data} />
+				<div className="view">
+					<h2>Aperçu</h2>
+					<div dangerouslySetInnerHTML={this.rawMarkup()}></div>
+				</div>
+				<div className="editor">
+					<h2>Editeur</h2>
+					<CMBox onChange={this.onChange}  defaultValue={this.state.data} />
+				</div>
 			</div>
 		);
 	}
