@@ -29378,6 +29378,11 @@ var CMBox = React.createClass({
 			_this.props.onChange(cm.getValue());
 		});
 	},
+	componentWillReceiveProps: function componentWillReceiveProps(nextProps) {
+		if (nextProps.value !== this.cm.getValue()) {
+			this.cm.setValue(nextProps.value);
+		}
+	},
 	render: function render() {
 		return React.createElement('div', { ref: 'editor' });
 	}
@@ -29391,18 +29396,48 @@ var Editor = React.createClass({
 		if (storedText) {
 			return { data: storedText };
 		}
-		return { data: '...' };
+		return { data: '...', fileError: false };
 	},
 	onChange: function onChange(newText) {
-
 		localStorage.setItem('storedText', newText);
 		this.setState({ data: newText });
 	},
 	rawMarkup: function rawMarkup() {
-		return { __html: marked(this.state.data, { sanitize: true }) };
+		return { __html: marked(this.state.data, { sanitize: false }) };
+	},
+	_handleFile: function _handleFile(e) {
+		var textType = /^text\//;
+		if (textType.test(e.target.files[0].type)) {
+			var reader = new FileReader();
+			reader.readAsText(e.target.files[0]);
+			reader.onload = function (e) {
+				this.setState({ data: e.target.result, fileError: false });
+			}.bind(this);
+		} else {
+			this.setState({ fileError: true });
+		}
+	},
+	_hideErrorMessage: function _hideErrorMessage() {
+		this.setState({ fileError: false });
 	},
 	render: function render() {
-		return React.createElement('div', null, React.createElement('div', { className: 'view' }, React.createElement('h2', null, 'Aperçu'), React.createElement('div', { dangerouslySetInnerHTML: this.rawMarkup() })), React.createElement('div', { className: 'editor' }, React.createElement('h2', null, 'Editeur'), React.createElement(CMBox, { onChange: this.onChange, defaultValue: this.state.data })));
+		return React.createElement('div', null, this.state.fileError ? React.createElement(ErrorMessage, { hide: this._hideErrorMessage }) : '', React.createElement(LoadFileForm, { handleFile: this._handleFile }), React.createElement('div', { className: 'view' }, React.createElement('h2', null, 'Aperçu'), React.createElement('div', { dangerouslySetInnerHTML: this.rawMarkup() })), React.createElement('div', { className: 'editor' }, React.createElement('h2', null, 'Editeur'), React.createElement(CMBox, { onChange: this.onChange, defaultValue: this.state.data, value: this.state.data })));
+	}
+});
+
+var LoadFileForm = React.createClass({
+	displayName: 'LoadFileForm',
+
+	render: function render() {
+		return React.createElement('form', null, React.createElement('input', { type: 'file', accept: 'text/*, .md', onChange: this.props.handleFile }));
+	}
+});
+
+var ErrorMessage = React.createClass({
+	displayName: 'ErrorMessage',
+
+	render: function render() {
+		return React.createElement('p', { className: 'error', onClick: this.props.hide }, 'Mauvais format de fichier');
 	}
 });
 
