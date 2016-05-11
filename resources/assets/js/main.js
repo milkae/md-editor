@@ -34,9 +34,9 @@ const Editor = React.createClass({
 	getInitialState: function(){
 		let storedText = localStorage.getItem('storedText');
 		if(storedText) {
-			return({ data : storedText});	
+			return({ data : storedText, fileError: false });	
 		}
-		return({ data : '...', fileError: false});
+		return({ data : '...', fileError: false });
 	},
 	onChange: function(newText){	
 		localStorage.setItem('storedText', newText)
@@ -46,10 +46,11 @@ const Editor = React.createClass({
 		return { __html: marked(this.state.data, {sanitize: false}) };
 	},
 	_handleFile: function(e){
+		let file = e.target.files[0];
 		let textType = /^text\//;
-		if(textType.test(e.target.files[0].type)){
+		if(textType.test(file.type)){
 			let reader = new FileReader();
-			reader.readAsText(e.target.files[0]);
+			reader.readAsText(file);
 			reader.onload = function(e){
 				this.setState({data : e.target.result, fileError: false});
 			}.bind(this);
@@ -63,8 +64,10 @@ const Editor = React.createClass({
 	render: function(){
 		return(
 			<div>
+				<p>Importer un fichier</p>
 				{this.state.fileError?<ErrorMessage hide={this._hideErrorMessage} />:''}
 				<LoadFileForm handleFile={this._handleFile}/>
+				<p><DownloadFile text={this.state.data} title="Document"/></p>
 				<div className="view">
 					<h2>Aperçu</h2>
 					<div dangerouslySetInnerHTML={this.rawMarkup()}></div>
@@ -74,6 +77,29 @@ const Editor = React.createClass({
 					<CMBox onChange={this.onChange}  defaultValue={this.state.data} value={this.state.data} />
 				</div>
 			</div>
+		);
+	}
+});
+
+const DownloadFile = React.createClass({
+	getInitialState: function(){
+		return({href: ''});
+	},
+	componentWillMount:function(){
+  	    this._createUrl(this.props.text);
+	},
+	componentWillUpdate(nextProps) {
+  	    if (nextProps.text !== this.props.text) {
+  	    	this._createUrl(nextProps.text);
+		}
+	},
+	_createUrl: function(props){
+		let text = new Blob([props], {type: 'text/markdown'});
+		this.setState({href: URL.createObjectURL(text)});
+	},
+	render: function(){
+		return(
+			<a href={this.state.href} download={this.props.title + '.md'}>Télécharger au format .md</a>
 		);
 	}
 });

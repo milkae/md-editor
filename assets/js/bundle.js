@@ -29394,7 +29394,7 @@ var Editor = React.createClass({
 	getInitialState: function getInitialState() {
 		var storedText = localStorage.getItem('storedText');
 		if (storedText) {
-			return { data: storedText };
+			return { data: storedText, fileError: false };
 		}
 		return { data: '...', fileError: false };
 	},
@@ -29406,10 +29406,11 @@ var Editor = React.createClass({
 		return { __html: marked(this.state.data, { sanitize: false }) };
 	},
 	_handleFile: function _handleFile(e) {
+		var file = e.target.files[0];
 		var textType = /^text\//;
-		if (textType.test(e.target.files[0].type)) {
+		if (textType.test(file.type)) {
 			var reader = new FileReader();
-			reader.readAsText(e.target.files[0]);
+			reader.readAsText(file);
 			reader.onload = function (e) {
 				this.setState({ data: e.target.result, fileError: false });
 			}.bind(this);
@@ -29421,7 +29422,31 @@ var Editor = React.createClass({
 		this.setState({ fileError: false });
 	},
 	render: function render() {
-		return React.createElement('div', null, this.state.fileError ? React.createElement(ErrorMessage, { hide: this._hideErrorMessage }) : '', React.createElement(LoadFileForm, { handleFile: this._handleFile }), React.createElement('div', { className: 'view' }, React.createElement('h2', null, 'Aperçu'), React.createElement('div', { dangerouslySetInnerHTML: this.rawMarkup() })), React.createElement('div', { className: 'editor' }, React.createElement('h2', null, 'Editeur'), React.createElement(CMBox, { onChange: this.onChange, defaultValue: this.state.data, value: this.state.data })));
+		return React.createElement('div', null, React.createElement('p', null, 'Importer un fichier'), this.state.fileError ? React.createElement(ErrorMessage, { hide: this._hideErrorMessage }) : '', React.createElement(LoadFileForm, { handleFile: this._handleFile }), React.createElement('p', null, React.createElement(DownloadFile, { text: this.state.data, title: 'Document' })), React.createElement('div', { className: 'view' }, React.createElement('h2', null, 'Aperçu'), React.createElement('div', { dangerouslySetInnerHTML: this.rawMarkup() })), React.createElement('div', { className: 'editor' }, React.createElement('h2', null, 'Editeur'), React.createElement(CMBox, { onChange: this.onChange, defaultValue: this.state.data, value: this.state.data })));
+	}
+});
+
+var DownloadFile = React.createClass({
+	displayName: 'DownloadFile',
+
+	getInitialState: function getInitialState() {
+		return { href: '' };
+	},
+	componentWillMount: function componentWillMount() {
+		this._createUrl(this.props.text);
+	},
+	componentWillUpdate: function componentWillUpdate(nextProps) {
+		if (nextProps.text !== this.props.text) {
+			this._createUrl(nextProps.text);
+		}
+	},
+
+	_createUrl: function _createUrl(props) {
+		var text = new Blob([props], { type: 'text/markdown' });
+		this.setState({ href: URL.createObjectURL(text) });
+	},
+	render: function render() {
+		return React.createElement('a', { href: this.state.href, download: this.props.title + '.md' }, 'Télécharger au format .md');
 	}
 });
 
