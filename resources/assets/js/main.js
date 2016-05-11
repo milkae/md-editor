@@ -10,7 +10,6 @@ const CMBox = React.createClass({
 	    this.cm = CodeMirror(this.refs.editor, {
 	      value: this.props.defaultValue,
 	      mode: 'markdown',
-	      theme: 'monokai',
 	      lineNumbers: true,
 	      autoCloseBrackets: true,
 	      matchBrackets: true,
@@ -43,7 +42,7 @@ const Editor = React.createClass({
 		this.setState({data: newText});
 	},
 	rawMarkup: function(){
-		return { __html: marked(this.state.data, {sanitize: false}) };
+		return { __html: marked(this.state.data, {sanitize: true}) };
 	},
 	_handleFile: function(e){
 		let file = e.target.files[0];
@@ -64,10 +63,11 @@ const Editor = React.createClass({
 	render: function(){
 		return(
 			<div>
-				<p>Importer un fichier</p>
+				<div className="editorHeader">
 				{this.state.fileError?<ErrorMessage hide={this._hideErrorMessage} />:''}
 				<LoadFileForm handleFile={this._handleFile}/>
-				<p><DownloadFile text={this.state.data} title="Document"/></p>
+				<DownloadFile text={this.state.data} title="Document"/>
+				</div>
 				<div className="view">
 					<h2>Aperçu</h2>
 					<div dangerouslySetInnerHTML={this.rawMarkup()}></div>
@@ -108,6 +108,7 @@ const LoadFileForm = React.createClass({
 	render: function(){
 		return(
 			<form>
+				<p>Importer un fichier</p>
 				<input type="file" accept="text/*, .md" onChange={this.props.handleFile} />
 			</form>
 		);

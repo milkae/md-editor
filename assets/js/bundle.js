@@ -29368,7 +29368,6 @@ var CMBox = React.createClass({
 		this.cm = CodeMirror(this.refs.editor, {
 			value: this.props.defaultValue,
 			mode: 'markdown',
-			theme: 'monokai',
 			lineNumbers: true,
 			autoCloseBrackets: true,
 			matchBrackets: true,
@@ -29403,7 +29402,7 @@ var Editor = React.createClass({
 		this.setState({ data: newText });
 	},
 	rawMarkup: function rawMarkup() {
-		return { __html: marked(this.state.data, { sanitize: false }) };
+		return { __html: marked(this.state.data, { sanitize: true }) };
 	},
 	_handleFile: function _handleFile(e) {
 		var file = e.target.files[0];
@@ -29422,7 +29421,7 @@ var Editor = React.createClass({
 		this.setState({ fileError: false });
 	},
 	render: function render() {
-		return React.createElement('div', null, React.createElement('p', null, 'Importer un fichier'), this.state.fileError ? React.createElement(ErrorMessage, { hide: this._hideErrorMessage }) : '', React.createElement(LoadFileForm, { handleFile: this._handleFile }), React.createElement('p', null, React.createElement(DownloadFile, { text: this.state.data, title: 'Document' })), React.createElement('div', { className: 'view' }, React.createElement('h2', null, 'Aperçu'), React.createElement('div', { dangerouslySetInnerHTML: this.rawMarkup() })), React.createElement('div', { className: 'editor' }, React.createElement('h2', null, 'Editeur'), React.createElement(CMBox, { onChange: this.onChange, defaultValue: this.state.data, value: this.state.data })));
+		return React.createElement('div', null, React.createElement('div', { className: 'editorHeader' }, this.state.fileError ? React.createElement(ErrorMessage, { hide: this._hideErrorMessage }) : '', React.createElement(LoadFileForm, { handleFile: this._handleFile }), React.createElement(DownloadFile, { text: this.state.data, title: 'Document' })), React.createElement('div', { className: 'view' }, React.createElement('h2', null, 'Aperçu'), React.createElement('div', { dangerouslySetInnerHTML: this.rawMarkup() })), React.createElement('div', { className: 'editor' }, React.createElement('h2', null, 'Editeur'), React.createElement(CMBox, { onChange: this.onChange, defaultValue: this.state.data, value: this.state.data })));
 	}
 });
 
@@ -29454,7 +29453,7 @@ var LoadFileForm = React.createClass({
 	displayName: 'LoadFileForm',
 
 	render: function render() {
-		return React.createElement('form', null, React.createElement('input', { type: 'file', accept: 'text/*, .md', onChange: this.props.handleFile }));
+		return React.createElement('form', null, React.createElement('p', null, 'Importer un fichier'), React.createElement('input', { type: 'file', accept: 'text/*, .md', onChange: this.props.handleFile }));
 	}
 });
 

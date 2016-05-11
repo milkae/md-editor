@@ -1,6 +1,9 @@
 // @import "node_modules/bootstrap-sass/assets/stylesheets/bootstrap";
 @import 'node_modules/codemirror/lib/codemirror';
-@import 'node_modules/codemirror/theme/monokai';
+body {
+	font-family: 'Muli', sans-serif;
+	background: #AEADB1;
+}
 .view, .editor {
 	display: inline-block;
 	width : 50%;
@@ -21,12 +24,28 @@
 header h1, .view > h2, .editor > h2 {
 	text-align: center;
 }
-body {
-	background: #5D5C61;
-}
 header h1 {
 	color: #BF0727;
+	font-size: 3em;
+	font-family: 'Josefin Sans';
 }
 .editor > h2, .view > h2 {
 	color: #fff;
+}
+header {
+	background-color: #E6E4E4;
+	padding: 0.5%;
+}
+.editorHeader {
+	border-top: 1px solid #fff;
+	padding: 0.5%;
+	background-color: #E6E4E4;
+	text-align: right;
+}
+.editorHeader form{
+	text-align: left;
+	width: 40%;
+}
+.editorHeader a {
+	color: #AF1637;
 }
