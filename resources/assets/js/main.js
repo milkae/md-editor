@@ -6,6 +6,7 @@ const CodeMirror = require('codemirror');
 const $ = require('jquery');
 require('codemirror/mode/markdown/markdown');
 
+/* Composant CodeMirror */
 const CMBox = React.createClass({
 	componentDidMount() {
 	    this.cm = CodeMirror(this.refs.editor, {
@@ -31,23 +32,53 @@ const CMBox = React.createClass({
 
 const Editor = React.createClass({
 	getInitialState: function(){
-		return {data : ''};
+		return {data : '...', online: false};
 	},
 	componentDidMount: function(){
-		this._loadStoredText();
+		/* Chargement des events IO */
+		window.addEventListener('load', this._onLoad);
+		window.addEventListener('online', this._switchOnline);
+		window.addEventListener('offline', this._switchOffline);
 	},
-	_loadStoredText : function(){
+	_onLoad: function() {
+			if (navigator.onLine) {
+		   		this._onlineLoadText();
+			} else {
+				this._offlineLoadText();
+			}
+	},
+	/* Gestion du status de connexion */
+	_switchOnline: function() {
+		let storedText = localStorage.getItem('storedText');
+		this._onlineStoreText(storedText);
+		this.setState({online: true});	    
+	},
+	_switchOffline: function() {
+		this.setState({online: false});
+	},
+	/* Chargement texte sauvegardé */
+	_onlineLoadText : function(){
 		$.ajax({
 			url: 'app.php',
 			type: 'GET',
 			dataType: 'json',
 			cache: false,
 			success: function(data){
-				this.setState({ data: data });
+				this.setState({ data: data, online: true });
 			}.bind(this)
 		});
 	},
-	_storeText: function(){
+	_offlineLoadText: function(){
+		let storedText = localStorage.getItem('storedText');
+		if(storedText) {
+			this.setState({ data : storedText, online: false});	
+		}
+	},
+	/* Sauvegarde texte */
+	_onlineStoreText: function(text) {
+		if(!text) {
+			let text = this.state.data;
+		}
 		if(this.xhr !== undefined){
 			this.xhr.abort();
 		}
@@ -55,12 +86,25 @@ const Editor = React.createClass({
 			url: 'app.php',
 			type: 'POST',
 			dataType: 'json',
-			data : { data: this.state.data }
+			data : { data: text }
 		});
 	},
-	_onChange: function(newText){
-		this._storeText();
+	/* Ecouteurs onChange */
+	_onChange: function(newText) {
+		if(this.state.online){
+			this._onlineHandleChange(newText);
+		} else {
+			this._offlineHandleChange(newText);
+		}
+	},
+	_onlineHandleChange: function(newText) {
+		this._onlineStoreText(newText);
 		this.setState({data: newText});
+	},
+	_offlineHandleChange: function(newText) {
+		localStorage.setItem('storedText', newText)
+		this.setState({data: newText});
+
 	},
 	_rawMarkup: function(){
 		return { __html: marked(this.state.data, {sanitize: true}) };

@@ -7,8 +7,4 @@ if(isset($_SESSION['storedText'])) {
 	header('Content-Type: application/json');
 	echo json_encode($_SESSION['storedText']);
 }
-else {
-	header('Content-Type: application/json');
-	echo json_encode('...');
-}
 ?>

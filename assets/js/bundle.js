@@ -39205,6 +39205,7 @@ var CodeMirror = require('codemirror');
 var $ = require('jquery');
 require('codemirror/mode/markdown/markdown');
 
+/* Composant CodeMirror */
 var CMBox = React.createClass({
 	displayName: 'CMBox',
 	componentDidMount: function componentDidMount() {
@@ -39235,23 +39236,53 @@ var Editor = React.createClass({
 	displayName: 'Editor',
 
 	getInitialState: function getInitialState() {
-		return { data: '' };
+		return { data: '...', online: false };
 	},
 	componentDidMount: function componentDidMount() {
-		this._loadStoredText();
+		/* Chargement des events IO */
+		window.addEventListener('load', this._onLoad);
+		window.addEventListener('online', this._switchOnline);
+		window.addEventListener('offline', this._switchOffline);
 	},
-	_loadStoredText: function _loadStoredText() {
+	_onLoad: function _onLoad() {
+		if (navigator.onLine) {
+			this._onlineLoadText();
+		} else {
+			this._offlineLoadText();
+		}
+	},
+	/* Gestion du status de connexion */
+	_switchOnline: function _switchOnline() {
+		var storedText = localStorage.getItem('storedText');
+		this._onlineStoreText(storedText);
+		this.setState({ online: true });
+	},
+	_switchOffline: function _switchOffline() {
+		this.setState({ online: false });
+	},
+	/* Chargement texte sauvegardé */
+	_onlineLoadText: function _onlineLoadText() {
 		$.ajax({
 			url: 'app.php',
 			type: 'GET',
 			dataType: 'json',
 			cache: false,
 			success: function (data) {
-				this.setState({ data: data });
+				this.setState({ data: data, online: true });
 			}.bind(this)
 		});
 	},
-	_storeText: function _storeText() {
+	_offlineLoadText: function _offlineLoadText() {
+		var storedText = localStorage.getItem('storedText');
+		if (storedText) {
+			this.setState({ data: storedText, online: false });
+		}
+	},
+	/* Sauvegarde texte */
+	_onlineStoreText: function _onlineStoreText(text) {
+		if (!text) {
+			var _text = this.state.data;
+		}
 		if (this.xhr !== undefined) {
 			this.xhr.abort();
 		}
@@ -39259,11 +39290,23 @@ var Editor = React.createClass({
 			url: 'app.php',
 			type: 'POST',
 			dataType: 'json',
-			data: { data: this.state.data }
+			data: { data: text }
 		});
 	},
+	/* Ecouteurs onChange */
 	_onChange: function _onChange(newText) {
-		this._storeText();
+		if (this.state.online) {
+			this._onlineHandleChange(newText);
+		} else {
+			this._offlineHandleChange(newText);
+		}
+	},
+	_onlineHandleChange: function _onlineHandleChange(newText) {
+		this._onlineStoreText(newText);
+		this.setState({ data: newText });
+	},
+	_offlineHandleChange: function _offlineHandleChange(newText) {
+		localStorage.setItem('storedText', newText);
 		this.setState({ data: newText });
 	},
 	_rawMarkup: function _rawMarkup() {
