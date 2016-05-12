@@ -32,7 +32,7 @@ const CMBox = React.createClass({
 
 const Editor = React.createClass({
 	getInitialState: function(){
-		return {data : '...', online: false};
+		return { data : [], actual: { id: 0, title: 'Document sans titre', content: '...' }, online: false };
 	},
 	componentDidMount: function(){
 		/* Chargement des events IO */
@@ -49,12 +49,12 @@ const Editor = React.createClass({
 	},
 	/* Gestion du status de connexion */
 	_switchOnline: function() {
-		let storedText = localStorage.getItem('storedText');
-		this._onlineStoreText(storedText);
+		let storedTexts = JSON.parse(localStorage.getItem('storedTexts'));
+		this._onlineStoreText(storedTexts);
 		this.setState({online: true});	    
 	},
 	_switchOffline: function() {
-		localStorage.setItem('storedText', this.state.data);
+		localStorage.setItem('storedTexts', JSON.stringify(this.state.data));
 		this.setState({online: false});
 	},
 	/* Chargement texte sauvegardé */
@@ -65,21 +65,19 @@ const Editor = React.createClass({
 			dataType: 'json',
 			cache: false,
 			success: function(data){
-				this.setState({ data: data, online: true });
+				this.setState({ data: data, actual: data[0] });
 			}.bind(this)
 		});
+		this.setState({online: true});	    
 	},
 	_offlineLoadText: function(){
-		let storedText = localStorage.getItem('storedText');
-		if(storedText) {
-			this.setState({ data : storedText, online: false});	
+		let storedTexts = JSON.parse(localStorage.getItem('storedTexts'));
+		if(storedTexts) {
+			this.setState({ data : storedTexts, actual: storedTexts[0], online: false});	
 		}
 	},
 	/* Sauvegarde texte */
-	_onlineStoreText: function(text) {
-		if(!text) {
-			let text = this.state.data;
-		}
+	_onlineStoreText: function(texts) {
 		if(this.xhr !== undefined){
 			this.xhr.abort();
 		}
@@ -87,49 +85,98 @@ const Editor = React.createClass({
 			url: 'app.php',
 			type: 'POST',
 			dataType: 'json',
-			data : { data: text }
+			data : { data: texts }
 		});
+	},
+	_offlineStoreData: function(actual){
+		let storedTexts = this.state.data;
+		console.log(storedTexts);
+		storedTexts[actual.id] = actual;
+		localStorage.setItem('storedTexts', JSON.stringify(storedTexts));
+		this.setState({ data: storedTexts, actual: actual });
 	},
 	/* Ecouteurs onChange */
 	_onChange: function(newText) {
+		let actual = { id: this.state.actual.id, title: this.state.actual.title, content: newText};
 		if(this.state.online){
-			this._onlineHandleChange(newText);
+			this._onlineHandleChange(actual);
 		} else {
-			this._offlineHandleChange(newText);
+			this._offlineStoreData(actual);
 		}
 	},
-	_onlineHandleChange: function(newText) {
-		this._onlineStoreText(newText);
-		this.setState({data: newText});
+	_onlineHandleChange: function(actual) {
+		let storedTexts = this.state.data;
+		storedTexts[actual.id] = actual;
+		this._onlineStoreText(storedTexts);
+		this.setState({ data: storedTexts, actual: actual });
 	},
-	_offlineHandleChange: function(newText) {
-		localStorage.setItem('storedText', newText)
-		this.setState({data: newText});
-
+	_changeTitle: function(e){
+		let actual = { id: this.state.actual.id, title: e.target.value, content: this.state.actual.content};
+		if(this.state.online){
+			this._onlineHandleChange(actual);
+		} else {
+			this._offlineStoreData(actual);
+		}
 	},
 	_rawMarkup: function(){
-		return { __html: marked(this.state.data, {sanitize: true}) };
+		return { __html: marked(this.state.actual.content, {sanitize: true}) };
 	},
-	_setData: function(data){
-		this.setState({data: data});
+	_addDoc: function(doc){
+		let texts = this.state.data;
+		texts.push(doc);
+		this.setState({ data: texts, actual: doc});
+	},
+	_newDoc: function(){
+		let id = this.state.data.length;
+		let doc = {id: id, title: 'Document sans titre', content: '...'};
+		this._addDoc(doc);
+	},
+	_loadDoc: function(doc){
+		let id = this.state.data.length;
+		doc.id = id;
+		this._addDoc(doc);
+	},
+	_changeDoc: function(id){
+		this.setState({actual : this.state.data[id]});
 	},
 	render: function(){
 		return(
 			<div>
 				<div className="editorHeader">
-					<FileLoader storeFileContent={this._setData} />
-					<FileDownloader text={this.state.data} title="Document"/>
+					<FileLoader storeFileContent={this._loadDoc} />
+					<FileDownloader doc={this.state.actual}/>
 				</div>
+				<ListeDocuments docs={this.state.data} addDoc={this._newDoc} changeDoc={this._changeDoc} />
 				<div className="view">
+				<input type="text" value={this.state.actual.title} onChange={this._changeTitle} />
 					<h2>Aperçu</h2>
 					<div dangerouslySetInnerHTML={this._rawMarkup()}></div>
 				</div>
 				<div className="editor">
 					<h2>Editeur</h2>
-					<CMBox onChange={this._onChange} value={this.state.data} />
+					<CMBox onChange={this._onChange} value={this.state.actual.content} />
 				</div>
 			</div>
 		);
+	}
+});
+
+const ListeDocuments = React.createClass({
+	_changeDoc: function(e){
+		this.props.changeDoc(e.target.id);
+	},
+	render: function(){
+		var DocsNodes = this.props.docs.map((doc) => {
+	      return (
+	        <button onClick={this._changeDoc} key={doc.id} id={doc.id}>{doc.title}</button>
+	      );
+	    });
+	    return(
+	    	<div>
+	    		{DocsNodes}
+	    		<button onClick={this.props.addDoc} >+</button>
+	    	</div>
+	    );
 	}
 });
 
@@ -144,7 +191,7 @@ const FileLoader = React.createClass({
 			let reader = new FileReader();
 			reader.readAsText(file);
 			reader.onload = function(e){
-				this.props.storeFileContent(e.target.result);
+				this.props.storeFileContent({ title: file.name, content: e.target.result });
 			}.bind(this);
 			this.setState({showError: false});
 		} else {
@@ -170,11 +217,11 @@ const FileDownloader = React.createClass({
 		return({href: ''});
 	},
 	componentWillMount:function(){
-  	    this._createUrl(this.props.text);
+  	    this._createUrl(this.props.doc.content);
 	},
 	componentWillUpdate(nextProps) {
-  	    if (nextProps.text !== this.props.text) {
-  	    	this._createUrl(nextProps.text);
+  	    if (nextProps.doc.content !== this.props.doc.content) {
+  	    	this._createUrl(nextProps.doc.content);
 		}
 	},
 	_createUrl: function(props){
@@ -183,7 +230,7 @@ const FileDownloader = React.createClass({
 	},
 	render: function(){
 		return(
-			<a href={this.state.href} download={this.props.title + '.md'}>Télécharger au format .md</a>
+			<a href={this.state.href} download={this.props.doc.title + '.md'}>Télécharger au format .md</a>
 		);
 	}
 });

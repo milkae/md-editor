@@ -39236,7 +39236,7 @@ var Editor = React.createClass({
 	displayName: 'Editor',
 
 	getInitialState: function getInitialState() {
-		return { data: '...', online: false };
+		return { data: [], actual: { id: 0, title: 'Document sans titre', content: '...' }, online: false };
 	},
 	componentDidMount: function componentDidMount() {
 		/* Chargement des events IO */
@@ -39253,12 +39253,12 @@ var Editor = React.createClass({
 	},
 	/* Gestion du status de connexion */
 	_switchOnline: function _switchOnline() {
-		var storedText = localStorage.getItem('storedText');
-		this._onlineStoreText(storedText);
+		var storedTexts = JSON.parse(localStorage.getItem('storedTexts'));
+		this._onlineStoreText(storedTexts);
 		this.setState({ online: true });
 	},
 	_switchOffline: function _switchOffline() {
-		localStorage.setItem('storedText', this.state.data);
+		localStorage.setItem('storedTexts', JSON.stringify(this.state.data));
 		this.setState({ online: false });
 	},
 	/* Chargement texte sauvegardé */
@@ -39269,21 +39269,19 @@ var Editor = React.createClass({
 			dataType: 'json',
 			cache: false,
 			success: function (data) {
-				this.setState({ data: data, online: true });
+				this.setState({ data: data, actual: data[0] });
 			}.bind(this)
 		});
+		this.setState({ online: true });
 	},
 	_offlineLoadText: function _offlineLoadText() {
-		var storedText = localStorage.getItem('storedText');
-		if (storedText) {
-			this.setState({ data: storedText, online: false });
+		var storedTexts = JSON.parse(localStorage.getItem('storedTexts'));
+		if (storedTexts) {
+			this.setState({ data: storedTexts, actual: storedTexts[0], online: false });
 		}
 	},
 	/* Sauvegarde texte */
-	_onlineStoreText: function _onlineStoreText(text) {
-		if (!text) {
-			var _text = this.state.data;
-		}
+	_onlineStoreText: function _onlineStoreText(texts) {
 		if (this.xhr !== undefined) {
 			this.xhr.abort();
 		}
@@ -39291,33 +39289,78 @@ var Editor = React.createClass({
 			url: 'app.php',
 			type: 'POST',
 			dataType: 'json',
-			data: { data: text }
+			data: { data: texts }
 		});
+	},
+	_offlineStoreData: function _offlineStoreData(actual) {
+		var storedTexts = this.state.data;
+		console.log(storedTexts);
+		storedTexts[actual.id] = actual;
+		localStorage.setItem('storedTexts', JSON.stringify(storedTexts));
+		this.setState({ data: storedTexts, actual: actual });
 	},
 	/* Ecouteurs onChange */
 	_onChange: function _onChange(newText) {
+		var actual = { id: this.state.actual.id, title: this.state.actual.title, content: newText };
 		if (this.state.online) {
-			this._onlineHandleChange(newText);
+			this._onlineHandleChange(actual);
 		} else {
-			this._offlineHandleChange(newText);
+			this._offlineStoreData(actual);
 		}
 	},
-	_onlineHandleChange: function _onlineHandleChange(newText) {
-		this._onlineStoreText(newText);
-		this.setState({ data: newText });
+	_onlineHandleChange: function _onlineHandleChange(actual) {
+		var storedTexts = this.state.data;
+		storedTexts[actual.id] = actual;
+		this._onlineStoreText(storedTexts);
+		this.setState({ data: storedTexts, actual: actual });
 	},
-	_offlineHandleChange: function _offlineHandleChange(newText) {
-		localStorage.setItem('storedText', newText);
-		this.setState({ data: newText });
+	_changeTitle: function _changeTitle(e) {
+		var actual = { id: this.state.actual.id, title: e.target.value, content: this.state.actual.content };
+		if (this.state.online) {
+			this._onlineHandleChange(actual);
+		} else {
+			this._offlineStoreData(actual);
+		}
 	},
 	_rawMarkup: function _rawMarkup() {
-		return { __html: marked(this.state.data, { sanitize: true }) };
+		return { __html: marked(this.state.actual.content, { sanitize: true }) };
 	},
-	_setData: function _setData(data) {
-		this.setState({ data: data });
+	_addDoc: function _addDoc(doc) {
+		var texts = this.state.data;
+		texts.push(doc);
+		this.setState({ data: texts, actual: doc });
+	},
+	_newDoc: function _newDoc() {
+		var id = this.state.data.length;
+		var doc = { id: id, title: 'Document sans titre', content: '...' };
+		this._addDoc(doc);
+	},
+	_loadDoc: function _loadDoc(doc) {
+		var id = this.state.data.length;
+		doc.id = id;
+		this._addDoc(doc);
+	},
+	_changeDoc: function _changeDoc(id) {
+		this.setState({ actual: this.state.data[id] });
 	},
 	render: function render() {
-		return React.createElement('div', null, React.createElement('div', { className: 'editorHeader' }, React.createElement(FileLoader, { storeFileContent: this._setData }), React.createElement(FileDownloader, { text: this.state.data, title: 'Document' })), React.createElement('div', { className: 'view' }, React.createElement('h2', null, 'Aperçu'), React.createElement('div', { dangerouslySetInnerHTML: this._rawMarkup() })), React.createElement('div', { className: 'editor' }, React.createElement('h2', null, 'Editeur'), React.createElement(CMBox, { onChange: this._onChange, value: this.state.data })));
+		return React.createElement('div', null, React.createElement('div', { className: 'editorHeader' }, React.createElement(FileLoader, { storeFileContent: this._loadDoc }), React.createElement(FileDownloader, { doc: this.state.actual })), React.createElement(ListeDocuments, { docs: this.state.data, addDoc: this._newDoc, changeDoc: this._changeDoc }), React.createElement('div', { className: 'view' }, React.createElement('input', { type: 'text', value: this.state.actual.title, onChange: this._changeTitle }), React.createElement('h2', null, 'Aperçu'), React.createElement('div', { dangerouslySetInnerHTML: this._rawMarkup() })), React.createElement('div', { className: 'editor' }, React.createElement('h2', null, 'Editeur'), React.createElement(CMBox, { onChange: this._onChange, value: this.state.actual.content })));
+	}
+});
+
+var ListeDocuments = React.createClass({
+	displayName: 'ListeDocuments',
+
+	_changeDoc: function _changeDoc(e) {
+		this.props.changeDoc(e.target.id);
+	},
+	render: function render() {
+		var _this2 = this;
+
+		var DocsNodes = this.props.docs.map(function (doc) {
+			return React.createElement('button', { onClick: _this2._changeDoc, key: doc.id, id: doc.id }, doc.title);
+		});
+		return React.createElement('div', null, DocsNodes, React.createElement('button', { onClick: this.props.addDoc }, '+'));
 	}
 });
 
@@ -39334,7 +39377,7 @@ var FileLoader = React.createClass({
 			var reader = new FileReader();
 			reader.readAsText(file);
 			reader.onload = function (e) {
-				this.props.storeFileContent(e.target.result);
+				this.props.storeFileContent({ title: file.name, content: e.target.result });
 			}.bind(this);
 			this.setState({ showError: false });
 		} else {
@@ -39356,11 +39399,11 @@ var FileDownloader = React.createClass({
 		return { href: '' };
 	},
 	componentWillMount: function componentWillMount() {
-		this._createUrl(this.props.text);
+		this._createUrl(this.props.doc.content);
 	},
 	componentWillUpdate: function componentWillUpdate(nextProps) {
-		if (nextProps.text !== this.props.text) {
-			this._createUrl(nextProps.text);
+		if (nextProps.doc.content !== this.props.doc.content) {
+			this._createUrl(nextProps.doc.content);
 		}
 	},
 
@@ -39369,7 +39412,7 @@ var FileDownloader = React.createClass({
 		this.setState({ href: URL.createObjectURL(text) });
 	},
 	render: function render() {
-		return React.createElement('a', { href: this.state.href, download: this.props.title + '.md' }, 'Télécharger au format .md');
+		return React.createElement('a', { href: this.state.href, download: this.props.doc.title + '.md' }, 'Télécharger au format .md');
 	}
 });
 
