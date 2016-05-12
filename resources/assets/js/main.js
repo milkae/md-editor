@@ -61,16 +61,20 @@ const Editor = React.createClass({
 			let reader = new FileReader();
 			reader.readAsText(file);
 			reader.onload = function(e){
-				this.setState({ actual: { content: e.target.result }, fileError: false });
+				let texts = this.state.data;
+				let id = texts.length; 
+				texts[id] = { id: id, content: e.target.result, title: file.name };
+				this.setState({ data: texts, actual : texts[id], fileError: false });
 			}.bind(this);
 		} else {
 			this.setState({ fileError: true });
 		}
 	},
 	_addDoc: function(){
-		let id = this.state.data.length;
-		this.state.data.push({id: id, title: 'Document sans titre', content: '...'});
-		this._changeDoc(id);
+		let texts = this.state.data;
+		let id = texts.length;
+		texts[id] = {id: id, title: 'Document sans titre', content: '...'};
+		this.setState({data : texts, actual : texts[id]});
 	},
 	_hideErrorMessage: function(){
 		this.setState({ fileError: false });
@@ -84,7 +88,7 @@ const Editor = React.createClass({
 				<div className="editorHeader">
 				{this.state.fileError?<ErrorMessage hide={this._hideErrorMessage} />:''}
 				<LoadFileForm handleFile={this._handleFile}/>
-				<DownloadFile text={this.state.actual.content} title={this.state.actual.title}/>
+				<DownloadFile doc={this.state.actual} />
 				</div>
 				<ListeDocuments docs={this.state.data} addDoc={this._addDoc} changeDoc={this._changeDoc} />
 				<div className="view">
@@ -125,11 +129,11 @@ const DownloadFile = React.createClass({
 		return({href: ''});
 	},
 	componentWillMount:function(){
-  	    this._createUrl(this.props.text);
+  	    this._createUrl(this.props.doc.content);
 	},
 	componentWillUpdate(nextProps) {
-  	    if (nextProps.text !== this.props.text) {
-  	    	this._createUrl(nextProps.text);
+  	    if (nextProps.doc.content !== this.props.doc.content) {
+  	    	this._createUrl(nextProps.doc.content);
 		}
 	},
 	_createUrl: function(props){
@@ -138,7 +142,7 @@ const DownloadFile = React.createClass({
 	},
 	render: function(){
 		return(
-			<a href={this.state.href} download={this.props.title + '.md'}>Télécharger au format .md</a>
+			<a href={this.state.href} download={this.props.doc.title + '.md'}>Télécharger au format .md</a>
 		);
 	}
 });

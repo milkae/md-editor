@@ -29421,16 +29421,20 @@ var Editor = React.createClass({
 			var reader = new FileReader();
 			reader.readAsText(file);
 			reader.onload = function (e) {
-				this.setState({ actual: { content: e.target.result }, fileError: false });
+				var texts = this.state.data;
+				var id = texts.length;
+				texts[id] = { id: id, content: e.target.result, title: file.name };
+				this.setState({ data: texts, actual: texts[id], fileError: false });
 			}.bind(this);
 		} else {
 			this.setState({ fileError: true });
 		}
 	},
 	_addDoc: function _addDoc() {
-		var id = this.state.data.length;
-		this.state.data.push({ id: id, title: 'Document sans titre', content: '...' });
-		this._changeDoc(id);
+		var texts = this.state.data;
+		var id = texts.length;
+		texts[id] = { id: id, title: 'Document sans titre', content: '...' };
+		this.setState({ data: texts, actual: texts[id] });
 	},
 	_hideErrorMessage: function _hideErrorMessage() {
 		this.setState({ fileError: false });
@@ -29439,7 +29443,7 @@ var Editor = React.createClass({
 		this.setState({ actual: this.state.data[id] });
 	},
 	render: function render() {
-		return React.createElement('div', null, React.createElement('div', { className: 'editorHeader' }, this.state.fileError ? React.createElement(ErrorMessage, { hide: this._hideErrorMessage }) : '', React.createElement(LoadFileForm, { handleFile: this._handleFile }), React.createElement(DownloadFile, { text: this.state.actual.content, title: this.state.actual.title })), React.createElement(ListeDocuments, { docs: this.state.data, addDoc: this._addDoc, changeDoc: this._changeDoc }), React.createElement('div', { className: 'view' }, React.createElement('h2', null, 'Aperçu'), React.createElement('div', { dangerouslySetInnerHTML: this.rawMarkup() })), React.createElement('div', { className: 'editor' }, React.createElement('h2', null, 'Editeur'), React.createElement('input', { type: 'text', value: this.state.actual.title, onChange: this._changeTitle }), React.createElement(CMBox, { onChange: this._onChange, defaultValue: this.state.actual.content, value: this.state.actual.content })));
+		return React.createElement('div', null, React.createElement('div', { className: 'editorHeader' }, this.state.fileError ? React.createElement(ErrorMessage, { hide: this._hideErrorMessage }) : '', React.createElement(LoadFileForm, { handleFile: this._handleFile }), React.createElement(DownloadFile, { doc: this.state.actual })), React.createElement(ListeDocuments, { docs: this.state.data, addDoc: this._addDoc, changeDoc: this._changeDoc }), React.createElement('div', { className: 'view' }, React.createElement('h2', null, 'Aperçu'), React.createElement('div', { dangerouslySetInnerHTML: this.rawMarkup() })), React.createElement('div', { className: 'editor' }, React.createElement('h2', null, 'Editeur'), React.createElement('input', { type: 'text', value: this.state.actual.title, onChange: this._changeTitle }), React.createElement(CMBox, { onChange: this._onChange, defaultValue: this.state.actual.content, value: this.state.actual.content })));
 	}
 });
 
@@ -29466,11 +29470,11 @@ var DownloadFile = React.createClass({
 		return { href: '' };
 	},
 	componentWillMount: function componentWillMount() {
-		this._createUrl(this.props.text);
+		this._createUrl(this.props.doc.content);
 	},
 	componentWillUpdate: function componentWillUpdate(nextProps) {
-		if (nextProps.text !== this.props.text) {
-			this._createUrl(nextProps.text);
+		if (nextProps.doc.content !== this.props.doc.content) {
+			this._createUrl(nextProps.doc.content);
 		}
 	},
 
@@ -29479,7 +29483,7 @@ var DownloadFile = React.createClass({
 		this.setState({ href: URL.createObjectURL(text) });
 	},
 	render: function render() {
-		return React.createElement('a', { href: this.state.href, download: this.props.title + '.md' }, 'Télécharger au format .md');
+		return React.createElement('a', { href: this.state.href, download: this.props.doc.title + '.md' }, 'Télécharger au format .md');
 	}
 });
 
