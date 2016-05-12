@@ -41,9 +41,11 @@ const Editor = React.createClass({
 		let actual = { id: this.state.actual.id, title: this.state.actual.title, content: newText};
 		this._storeData(actual);
 	},
+	_addToTextsTab: function(item) {
+		return [...this.state.data, item];
+	},
 	_storeData: function(actual){
-		let storedTexts = this.state.data;
-		storedTexts[this.state.actual.id] = actual;
+		let storedTexts = this._addToTextsTab(actual);
 		localStorage.setItem('storedTexts', JSON.stringify(storedTexts));
 		this.setState({ data: storedTexts, actual: actual });
 	},
@@ -61,9 +63,7 @@ const Editor = React.createClass({
 			let reader = new FileReader();
 			reader.readAsText(file);
 			reader.onload = function(e){
-				let texts = this.state.data;
-				let id = texts.length; 
-				texts[id] = { id: id, content: e.target.result, title: file.name };
+				let texts = this._addToTextsTab({ id: id, content: e.target.result, title: file.name });
 				this.setState({ data: texts, actual : texts[id], fileError: false });
 			}.bind(this);
 		} else {
@@ -83,10 +83,14 @@ const Editor = React.createClass({
 		this.setState({actual : this.state.data[id]});
 	},
 	render: function(){
+		let ErrorMessage ;
+		if(this.state.fileError) {
+			ErrorMessage = (<p className="error" onClick={this._hideErrorMessage}>Mauvais format de fichier</p>);
+		}
 		return(
 			<div>
 				<div className="editorHeader">
-				{this.state.fileError?<ErrorMessage hide={this._hideErrorMessage} />:''}
+				{ErrorMessage}
 				<LoadFileForm handleFile={this._handleFile}/>
 				<DownloadFile doc={this.state.actual} />
 				</div>
@@ -157,14 +161,6 @@ const LoadFileForm = React.createClass({
 		);
 	}
 });
-
-const ErrorMessage = React.createClass({
-	render: function(){
-		return(
-			<p className="error" onClick={this.props.hide}>Mauvais format de fichier</p>
-		);
-	}
-})
 
 ReactDOM.render(
 		<Editor />,

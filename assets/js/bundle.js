@@ -29355,6 +29355,16 @@ module.exports = require('./lib/React');
 },{"./lib/React":30}],163:[function(require,module,exports){
 'use strict';
 
+function _toConsumableArray(arr) {
+	if (Array.isArray(arr)) {
+		for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) {
+			arr2[i] = arr[i];
+		}return arr2;
+	} else {
+		return Array.from(arr);
+	}
+}
+
 var React = require('react');
 var ReactDOM = require('react-dom');
 var CodeMirror = require('codemirror');
@@ -29401,9 +29411,11 @@ var Editor = React.createClass({
 		var actual = { id: this.state.actual.id, title: this.state.actual.title, content: newText };
 		this._storeData(actual);
 	},
+	_addToTextsTab: function _addToTextsTab(item) {
+		return [].concat(_toConsumableArray(this.state.data), [item]);
+	},
 	_storeData: function _storeData(actual) {
-		var storedTexts = this.state.data;
-		storedTexts[this.state.actual.id] = actual;
+		var storedTexts = this._addToTextsTab(actual);
 		localStorage.setItem('storedTexts', JSON.stringify(storedTexts));
 		this.setState({ data: storedTexts, actual: actual });
 	},
@@ -29421,9 +29433,7 @@ var Editor = React.createClass({
 			var reader = new FileReader();
 			reader.readAsText(file);
 			reader.onload = function (e) {
-				var texts = this.state.data;
-				var id = texts.length;
-				texts[id] = { id: id, content: e.target.result, title: file.name };
+				var texts = this._addToTextsTab({ id: id, content: e.target.result, title: file.name });
 				this.setState({ data: texts, actual: texts[id], fileError: false });
 			}.bind(this);
 		} else {
@@ -29443,7 +29453,11 @@ var Editor = React.createClass({
 		this.setState({ actual: this.state.data[id] });
 	},
 	render: function render() {
-		return React.createElement('div', null, React.createElement('div', { className: 'editorHeader' }, this.state.fileError ? React.createElement(ErrorMessage, { hide: this._hideErrorMessage }) : '', React.createElement(LoadFileForm, { handleFile: this._handleFile }), React.createElement(DownloadFile, { doc: this.state.actual })), React.createElement(ListeDocuments, { docs: this.state.data, addDoc: this._addDoc, changeDoc: this._changeDoc }), React.createElement('div', { className: 'view' }, React.createElement('h2', null, 'Aperçu'), React.createElement('div', { dangerouslySetInnerHTML: this.rawMarkup() })), React.createElement('div', { className: 'editor' }, React.createElement('h2', null, 'Editeur'), React.createElement('input', { type: 'text', value: this.state.actual.title, onChange: this._changeTitle }), React.createElement(CMBox, { onChange: this._onChange, defaultValue: this.state.actual.content, value: this.state.actual.content })));
+		var ErrorMessage = void 0;
+		if (this.state.fileError) {
+			ErrorMessage = React.createElement('p', { className: 'error', onClick: this._hideErrorMessage }, 'Mauvais format de fichier');
+		}
+		return React.createElement('div', null, React.createElement('div', { className: 'editorHeader' }, ErrorMessage, React.createElement(LoadFileForm, { handleFile: this._handleFile }), React.createElement(DownloadFile, { doc: this.state.actual })), React.createElement(ListeDocuments, { docs: this.state.data, addDoc: this._addDoc, changeDoc: this._changeDoc }), React.createElement('div', { className: 'view' }, React.createElement('h2', null, 'Aperçu'), React.createElement('div', { dangerouslySetInnerHTML: this.rawMarkup() })), React.createElement('div', { className: 'editor' }, React.createElement('h2', null, 'Editeur'), React.createElement('input', { type: 'text', value: this.state.actual.title, onChange: this._changeTitle }), React.createElement(CMBox, { onChange: this._onChange, defaultValue: this.state.actual.content, value: this.state.actual.content })));
 	}
 });
 
@@ -29492,14 +29506,6 @@ var LoadFileForm = React.createClass({
 
 	render: function render() {
 		return React.createElement('form', null, React.createElement('p', null, 'Importer un fichier'), React.createElement('input', { type: 'file', accept: 'text/*, .md', onChange: this.props.handleFile }));
-	}
-});
-
-var ErrorMessage = React.createClass({
-	displayName: 'ErrorMessage',
-
-	render: function render() {
-		return React.createElement('p', { className: 'error', onClick: this.props.hide }, 'Mauvais format de fichier');
 	}
 });
 
