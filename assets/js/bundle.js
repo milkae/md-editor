@@ -29427,22 +29427,35 @@ var Editor = React.createClass({
 			this.setState({ fileError: true });
 		}
 	},
+	_addDoc: function _addDoc() {
+		var id = this.state.data.length;
+		this.state.data.push({ id: id, title: 'Document sans titre', content: '...' });
+		this._changeDoc(id);
+	},
 	_hideErrorMessage: function _hideErrorMessage() {
 		this.setState({ fileError: false });
 	},
+	_changeDoc: function _changeDoc(id) {
+		this.setState({ actual: this.state.data[id] });
+	},
 	render: function render() {
-		return React.createElement('div', null, React.createElement('div', { className: 'editorHeader' }, this.state.fileError ? React.createElement(ErrorMessage, { hide: this._hideErrorMessage }) : '', React.createElement(LoadFileForm, { handleFile: this._handleFile }), React.createElement(DownloadFile, { text: this.state.actual.content, title: this.state.actual.title })), React.createElement(ListeDocuments, { docs: this.state.data }), React.createElement('div', { className: 'view' }, React.createElement('h2', null, 'Aperçu'), React.createElement('div', { dangerouslySetInnerHTML: this.rawMarkup() })), React.createElement('div', { className: 'editor' }, React.createElement('h2', null, 'Editeur'), React.createElement('input', { type: 'text', value: this.state.actual.title, onChange: this._changeTitle }), React.createElement(CMBox, { onChange: this._onChange, defaultValue: this.state.actual.content, value: this.state.actual.content })));
+		return React.createElement('div', null, React.createElement('div', { className: 'editorHeader' }, this.state.fileError ? React.createElement(ErrorMessage, { hide: this._hideErrorMessage }) : '', React.createElement(LoadFileForm, { handleFile: this._handleFile }), React.createElement(DownloadFile, { text: this.state.actual.content, title: this.state.actual.title })), React.createElement(ListeDocuments, { docs: this.state.data, addDoc: this._addDoc, changeDoc: this._changeDoc }), React.createElement('div', { className: 'view' }, React.createElement('h2', null, 'Aperçu'), React.createElement('div', { dangerouslySetInnerHTML: this.rawMarkup() })), React.createElement('div', { className: 'editor' }, React.createElement('h2', null, 'Editeur'), React.createElement('input', { type: 'text', value: this.state.actual.title, onChange: this._changeTitle }), React.createElement(CMBox, { onChange: this._onChange, defaultValue: this.state.actual.content, value: this.state.actual.content })));
 	}
 });
 
 var ListeDocuments = React.createClass({
 	displayName: 'ListeDocuments',
 
+	_changeDoc: function _changeDoc(e) {
+		this.props.changeDoc(e.target.id);
+	},
 	render: function render() {
+		var _this2 = this;
+
 		var DocsNodes = this.props.docs.map(function (doc) {
-			return React.createElement('button', null, doc.title);
+			return React.createElement('button', { onClick: _this2._changeDoc, key: doc.id, id: doc.id }, doc.title);
 		});
-		return React.createElement('div', null, DocsNodes);
+		return React.createElement('div', null, DocsNodes, React.createElement('button', { onClick: this.props.addDoc }, '+'));
 	}
 });
 

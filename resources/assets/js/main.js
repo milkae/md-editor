@@ -67,8 +67,16 @@ const Editor = React.createClass({
 			this.setState({ fileError: true });
 		}
 	},
+	_addDoc: function(){
+		let id = this.state.data.length;
+		this.state.data.push({id: id, title: 'Document sans titre', content: '...'});
+		this._changeDoc(id);
+	},
 	_hideErrorMessage: function(){
 		this.setState({ fileError: false });
+	},
+	_changeDoc: function(id){
+		this.setState({actual : this.state.data[id]});
 	},
 	render: function(){
 		return(
@@ -78,7 +86,7 @@ const Editor = React.createClass({
 				<LoadFileForm handleFile={this._handleFile}/>
 				<DownloadFile text={this.state.actual.content} title={this.state.actual.title}/>
 				</div>
-				<ListeDocuments docs={this.state.data}/>
+				<ListeDocuments docs={this.state.data} addDoc={this._addDoc} changeDoc={this._changeDoc} />
 				<div className="view">
 					<h2>Aperçu</h2>
 					<div dangerouslySetInnerHTML={this.rawMarkup()}></div>
@@ -94,14 +102,20 @@ const Editor = React.createClass({
 });
 
 const ListeDocuments = React.createClass({
+	_changeDoc: function(e){
+		this.props.changeDoc(e.target.id);
+	},
 	render: function(){
-		var DocsNodes = this.props.docs.map(function(doc) {
+		var DocsNodes = this.props.docs.map((doc) => {
 	      return (
-	        <button>{doc.title}</button>
+	        <button onClick={this._changeDoc} key={doc.id} id={doc.id}>{doc.title}</button>
 	      );
 	    });
 	    return(
-	    	<div>{DocsNodes}</div>
+	    	<div>
+	    		{DocsNodes}
+	    		<button onClick={this.props.addDoc} >+</button>
+	    	</div>
 	    );
 	}
 });
