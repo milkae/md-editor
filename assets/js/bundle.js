@@ -39258,6 +39258,7 @@ var Editor = React.createClass({
 		this.setState({ online: true });
 	},
 	_switchOffline: function _switchOffline() {
+		localStorage.setItem('storedText', this.state.data);
 		this.setState({ online: false });
 	},
 	/* Chargement texte sauvegardé */
