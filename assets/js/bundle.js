@@ -39312,8 +39312,63 @@ var Editor = React.createClass({
 	_rawMarkup: function _rawMarkup() {
 		return { __html: marked(this.state.data, { sanitize: true }) };
 	},
+	_setData: function _setData(data) {
+		this.setState({ data: data });
+	},
 	render: function render() {
-		return React.createElement('div', null, React.createElement('div', { className: 'view' }, React.createElement('h2', null, 'Aperçu'), React.createElement('div', { dangerouslySetInnerHTML: this._rawMarkup() })), React.createElement('div', { className: 'editor' }, React.createElement('h2', null, 'Editeur'), React.createElement(CMBox, { onChange: this._onChange, value: this.state.data })));
+		return React.createElement('div', null, React.createElement('div', { className: 'editorHeader' }, React.createElement(FileLoader, { storeFileContent: this._setData }), React.createElement(FileDownloader, { text: this.state.data, title: 'Document' })), React.createElement('div', { className: 'view' }, React.createElement('h2', null, 'Aperçu'), React.createElement('div', { dangerouslySetInnerHTML: this._rawMarkup() })), React.createElement('div', { className: 'editor' }, React.createElement('h2', null, 'Editeur'), React.createElement(CMBox, { onChange: this._onChange, value: this.state.data })));
+	}
+});
+
+var FileLoader = React.createClass({
+	displayName: 'FileLoader',
+
+	getInitialState: function getInitialState() {
+		return { showError: false };
+	},
+	_handleFile: function _handleFile(e) {
+		var file = e.target.files[0];
+		var textType = /^text\//;
+		if (textType.test(file.type)) {
+			var reader = new FileReader();
+			reader.readAsText(file);
+			reader.onload = function (e) {
+				this.props.storeFileContent(e.target.result);
+			}.bind(this);
+			this.setState({ showError: false });
+		} else {
+			this.setState({ showError: true });
+		}
+	},
+	_hideError: function _hideError() {
+		this.setState({ showError: false });
+	},
+	render: function render() {
+		return React.createElement('div', null, this.state.showError ? React.createElement('p', { className: 'errorMessage', onClick: this._hideError }, 'Mauvais format de fichier') : '', React.createElement('p', null, 'Importer un fichier'), React.createElement('input', { type: 'file', accept: 'text/*, .md', onChange: this._handleFile }));
+	}
+});
+
+var FileDownloader = React.createClass({
+	displayName: 'FileDownloader',
+
+	getInitialState: function getInitialState() {
+		return { href: '' };
+	},
+	componentWillMount: function componentWillMount() {
+		this._createUrl(this.props.text);
+	},
+	componentWillUpdate: function componentWillUpdate(nextProps) {
+		if (nextProps.text !== this.props.text) {
+			this._createUrl(nextProps.text);
+		}
+	},
+
+	_createUrl: function _createUrl(props) {
+		var text = new Blob([props], { type: 'text/markdown' });
+		this.setState({ href: URL.createObjectURL(text) });
+	},
+	render: function render() {
+		return React.createElement('a', { href: this.state.href, download: this.props.title + '.md' }, 'Télécharger au format .md');
 	}
 });
 

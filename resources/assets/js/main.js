@@ -109,9 +109,16 @@ const Editor = React.createClass({
 	_rawMarkup: function(){
 		return { __html: marked(this.state.data, {sanitize: true}) };
 	},
+	_setData: function(data){
+		this.setState({data: data});
+	},
 	render: function(){
 		return(
 			<div>
+				<div className="editorHeader">
+					<FileLoader storeFileContent={this._setData} />
+					<FileDownloader text={this.state.data} title="Document"/>
+				</div>
 				<div className="view">
 					<h2>Aperçu</h2>
 					<div dangerouslySetInnerHTML={this._rawMarkup()}></div>
@@ -121,6 +128,61 @@ const Editor = React.createClass({
 					<CMBox onChange={this._onChange} value={this.state.data} />
 				</div>
 			</div>
+		);
+	}
+});
+
+const FileLoader = React.createClass({
+	getInitialState: function(){
+		return({showError: false});
+	},
+	_handleFile: function(e){
+		let file = e.target.files[0];
+		let textType = /^text\//;
+		if(textType.test(file.type)){
+			let reader = new FileReader();
+			reader.readAsText(file);
+			reader.onload = function(e){
+				this.props.storeFileContent(e.target.result);
+			}.bind(this);
+			this.setState({showError: false});
+		} else {
+			this.setState({showError: true});
+		}
+	},
+	_hideError: function(){
+		this.setState({showError: false});
+	},
+	render: function(){
+		return(
+			<div>
+				{this.state.showError?<p className="errorMessage" onClick={this._hideError}>Mauvais format de fichier</p>:''}
+				<p>Importer un fichier</p>
+				<input type="file" accept="text/*, .md" onChange={this._handleFile} />
+			</div>
+		);
+	}
+});
+
+const FileDownloader = React.createClass({
+	getInitialState: function(){
+		return({href: ''});
+	},
+	componentWillMount:function(){
+  	    this._createUrl(this.props.text);
+	},
+	componentWillUpdate(nextProps) {
+  	    if (nextProps.text !== this.props.text) {
+  	    	this._createUrl(nextProps.text);
+		}
+	},
+	_createUrl: function(props){
+		let text = new Blob([props], {type: 'text/markdown'});
+		this.setState({href: URL.createObjectURL(text)});
+	},
+	render: function(){
+		return(
+			<a href={this.state.href} download={this.props.title + '.md'}>Télécharger au format .md</a>
 		);
 	}
 });
