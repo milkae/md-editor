@@ -31,18 +31,28 @@ const CMBox = React.createClass({
 
 const Editor = React.createClass({
 	getInitialState: function(){
-		let storedText = localStorage.getItem('storedText');
-		if(storedText) {
-			return({ data : storedText, fileError: false });	
+		let storedTexts = JSON.parse(localStorage.getItem('storedTexts'));
+		if(storedTexts) {
+			return({ data : storedTexts, actual: storedTexts[0], fileError: false });	
 		}
-		return({ data : '...', fileError: false });
+		return({ data : [], actual: { id: 0, title: 'Document sans titre', content: '...' }, fileError: false });
 	},
-	onChange: function(newText){	
-		localStorage.setItem('storedText', newText)
-		this.setState({data: newText});
+	_onChange: function(newText){
+		let actual = { id: this.state.actual.id, title: this.state.actual.title, content: newText};
+		this._storeData(actual);
+	},
+	_storeData: function(actual){
+		let storedTexts = this.state.data;
+		storedTexts[this.state.actual.id] = actual;
+		localStorage.setItem('storedTexts', JSON.stringify(storedTexts));
+		this.setState({ data: storedTexts, actual: actual });
+	},
+	_changeTitle: function(e){
+		let actual = { id: this.state.actual.id, title: e.target.value, content: this.state.actual.content};
+		this._storeData(actual);
 	},
 	rawMarkup: function(){
-		return { __html: marked(this.state.data, {sanitize: true}) };
+		return { __html: marked(this.state.actual.content, {sanitize: true}) };
 	},
 	_handleFile: function(e){
 		let file = e.target.files[0];
@@ -51,14 +61,14 @@ const Editor = React.createClass({
 			let reader = new FileReader();
 			reader.readAsText(file);
 			reader.onload = function(e){
-				this.setState({data : e.target.result, fileError: false});
+				this.setState({ actual: { content: e.target.result }, fileError: false });
 			}.bind(this);
 		} else {
-			this.setState({fileError: true});
+			this.setState({ fileError: true });
 		}
 	},
 	_hideErrorMessage: function(){
-		this.setState({fileError: false});
+		this.setState({ fileError: false });
 	},
 	render: function(){
 		return(
@@ -66,18 +76,33 @@ const Editor = React.createClass({
 				<div className="editorHeader">
 				{this.state.fileError?<ErrorMessage hide={this._hideErrorMessage} />:''}
 				<LoadFileForm handleFile={this._handleFile}/>
-				<DownloadFile text={this.state.data} title="Document"/>
+				<DownloadFile text={this.state.actual.content} title={this.state.actual.title}/>
 				</div>
+				<ListeDocuments docs={this.state.data}/>
 				<div className="view">
 					<h2>Aperçu</h2>
 					<div dangerouslySetInnerHTML={this.rawMarkup()}></div>
 				</div>
 				<div className="editor">
 					<h2>Editeur</h2>
-					<CMBox onChange={this.onChange}  defaultValue={this.state.data} value={this.state.data} />
+					<input type="text" value={this.state.actual.title} onChange={this._changeTitle} />
+					<CMBox onChange={this._onChange}  defaultValue={this.state.actual.content} value={this.state.actual.content} />
 				</div>
 			</div>
 		);
+	}
+});
+
+const ListeDocuments = React.createClass({
+	render: function(){
+		var DocsNodes = this.props.docs.map(function(doc) {
+	      return (
+	        <button>{doc.title}</button>
+	      );
+	    });
+	    return(
+	    	<div>{DocsNodes}</div>
+	    );
 	}
 });
 

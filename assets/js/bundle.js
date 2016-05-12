@@ -29391,18 +29391,28 @@ var Editor = React.createClass({
 	displayName: 'Editor',
 
 	getInitialState: function getInitialState() {
-		var storedText = localStorage.getItem('storedText');
-		if (storedText) {
-			return { data: storedText, fileError: false };
+		var storedTexts = JSON.parse(localStorage.getItem('storedTexts'));
+		if (storedTexts) {
+			return { data: storedTexts, actual: storedTexts[0], fileError: false };
 		}
-		return { data: '...', fileError: false };
+		return { data: [], actual: { id: 0, title: 'Document sans titre', content: '...' }, fileError: false };
 	},
-	onChange: function onChange(newText) {
-		localStorage.setItem('storedText', newText);
-		this.setState({ data: newText });
+	_onChange: function _onChange(newText) {
+		var actual = { id: this.state.actual.id, title: this.state.actual.title, content: newText };
+		this._storeData(actual);
+	},
+	_storeData: function _storeData(actual) {
+		var storedTexts = this.state.data;
+		storedTexts[this.state.actual.id] = actual;
+		localStorage.setItem('storedTexts', JSON.stringify(storedTexts));
+		this.setState({ data: storedTexts, actual: actual });
+	},
+	_changeTitle: function _changeTitle(e) {
+		var actual = { id: this.state.actual.id, title: e.target.value, content: this.state.actual.content };
+		this._storeData(actual);
 	},
 	rawMarkup: function rawMarkup() {
-		return { __html: marked(this.state.data, { sanitize: true }) };
+		return { __html: marked(this.state.actual.content, { sanitize: true }) };
 	},
 	_handleFile: function _handleFile(e) {
 		var file = e.target.files[0];
@@ -29411,7 +29421,7 @@ var Editor = React.createClass({
 			var reader = new FileReader();
 			reader.readAsText(file);
 			reader.onload = function (e) {
-				this.setState({ data: e.target.result, fileError: false });
+				this.setState({ actual: { content: e.target.result }, fileError: false });
 			}.bind(this);
 		} else {
 			this.setState({ fileError: true });
@@ -29421,7 +29431,18 @@ var Editor = React.createClass({
 		this.setState({ fileError: false });
 	},
 	render: function render() {
-		return React.createElement('div', null, React.createElement('div', { className: 'editorHeader' }, this.state.fileError ? React.createElement(ErrorMessage, { hide: this._hideErrorMessage }) : '', React.createElement(LoadFileForm, { handleFile: this._handleFile }), React.createElement(DownloadFile, { text: this.state.data, title: 'Document' })), React.createElement('div', { className: 'view' }, React.createElement('h2', null, 'Aperçu'), React.createElement('div', { dangerouslySetInnerHTML: this.rawMarkup() })), React.createElement('div', { className: 'editor' }, React.createElement('h2', null, 'Editeur'), React.createElement(CMBox, { onChange: this.onChange, defaultValue: this.state.data, value: this.state.data })));
+		return React.createElement('div', null, React.createElement('div', { className: 'editorHeader' }, this.state.fileError ? React.createElement(ErrorMessage, { hide: this._hideErrorMessage }) : '', React.createElement(LoadFileForm, { handleFile: this._handleFile }), React.createElement(DownloadFile, { text: this.state.actual.content, title: this.state.actual.title })), React.createElement(ListeDocuments, { docs: this.state.data }), React.createElement('div', { className: 'view' }, React.createElement('h2', null, 'Aperçu'), React.createElement('div', { dangerouslySetInnerHTML: this.rawMarkup() })), React.createElement('div', { className: 'editor' }, React.createElement('h2', null, 'Editeur'), React.createElement('input', { type: 'text', value: this.state.actual.title, onChange: this._changeTitle }), React.createElement(CMBox, { onChange: this._onChange, defaultValue: this.state.actual.content, value: this.state.actual.content })));
+	}
+});
+
+var ListeDocuments = React.createClass({
+	displayName: 'ListeDocuments',
+
+	render: function render() {
+		var DocsNodes = this.props.docs.map(function (doc) {
+			return React.createElement('button', null, doc.title);
+		});
+		return React.createElement('div', null, DocsNodes);
 	}
 });
 
