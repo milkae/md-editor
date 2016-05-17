@@ -39619,10 +39619,10 @@ var Editor = React.createClass({
 	_addDoc: function _addDoc(doc) {
 		doc.id = this.state.data.length;
 		var texts = [].concat(_toConsumableArray(this.state.data), [doc]);
-		this.setState({ data: texts, actual: doc });
+		this.setState({ data: texts, actual: doc, showMenu: false });
 	},
 	_changeDoc: function _changeDoc(id) {
-		this.setState({ actual: this.state.data[id] });
+		this.setState({ actual: this.state.data[id], showMenu: false });
 	},
 	_toggleMenu: function _toggleMenu() {
 		this.setState({ showMenu: !this.state.showMenu });

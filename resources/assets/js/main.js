@@ -96,10 +96,10 @@ const Editor = React.createClass({
 	_addDoc: function(doc){
 		doc.id = this.state.data.length;
 		let texts = [...this.state.data, doc];
-		this.setState({ data: texts, actual: doc});
+		this.setState({ data: texts, actual: doc, showMenu: false});
 	},
 	_changeDoc: function(id){
-		this.setState({actual : this.state.data[id]});
+		this.setState({actual : this.state.data[id], showMenu: false});
 	},
 	_toggleMenu: function(){
 		this.setState({ showMenu: !this.state.showMenu })
