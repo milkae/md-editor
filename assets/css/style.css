@@ -393,9 +393,13 @@ div.CodeMirror-dragcursors {
 span.CodeMirror-selectedtext {
   background: none; }
 
+html, body {
+  margin: 0;
+  padding: 0; }
+
 body {
   font-family: 'Muli', sans-serif;
-  background: #AEADB1; }
+  background: #FFBC42; }
 
 .view, .editor {
   display: inline-block;
@@ -405,49 +409,43 @@ body {
   box-sizing: border-box; }
 
 .view {
-  box-sizing: border-box;
   padding: 0 0.5em;
   overflow: auto;
-  height: 600px;
-  background: #EEEEEE; }
+  background: #EFFFE9; }
 
 .CodeMirror {
   height: 600px; }
 
-header {
-  background-color: #E6E4E4;
-  padding: 0.5%; }
-
 .editorHeader {
-  border-top: 1px solid #fff;
   padding: 0.5%;
-  background-color: #E6E4E4;
-  text-align: right; }
+  background-color: #218380; }
 
-.editorHeader form {
-  text-align: right; }
-
-.fileBox a {
-  float: right;
-  color: #AF1637; }
+a {
+  color: #000; }
 
 .titleInput {
   display: block;
   width: 40%;
   text-align: center;
-  margin: 0.1em auto;
+  margin: auto;
   padding: 0.3em;
+  margin-bottom: 1em;
   font-size: 1.3em; }
 
-.textList button {
-  padding: 0.5em 1.5em;
+button {
+  padding: 0.3em 0.5em;
   border-radius: 0.2em;
-  margin: 0.2em 0.2em;
+  margin-bottom: 0.5em;
   border-style: none;
-  background-color: #fff; }
+  background-color: #2EC4B6;
+  color: #EFFFE9; }
 
 .textList {
   text-align: left; }
+
+.textList a {
+  text-decoration: none;
+  color: #fff; }
 
 input[type='file'] {
   margin: 1em 0; }
@@ -455,10 +453,28 @@ input[type='file'] {
 .fileBox {
   margin-top: 0.5em; }
 
-.fileBox button {
-  border-radius: 0.2em;
+ul li {
+  font-size: 0.9em;
+  list-style-type: none;
+  border-bottom: 1px solid #8F2D56;
+  padding: 0.3em; }
+
+ul {
+  padding: 0.1em; }
+
+.menu {
+  position: absolute;
+  background: #1E6F6C;
+  width: 20%;
+  padding: 1em;
+  overflow: auto; }
+
+.menuBtn {
   border-style: none;
-  padding: 0.3em 0.5em;
-  background-color: #fff; }
+  background-color: #D81159;
+  margin: auto;
+  color: #EFFFE9;
+  font-size: 1em;
+  padding: 0.5em 2em; }
 
 /*# sourceMappingURL=style.css.map */

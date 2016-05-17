@@ -29405,7 +29405,7 @@ var Editor = React.createClass({
 		if (storedTexts) {
 			return { data: storedTexts, actual: storedTexts[0] };
 		}
-		return { data: [], actual: { id: 0, title: 'Document sans titre', content: '...' }, showLoadInput: false };
+		return { data: [], actual: { id: 0, title: 'Document sans titre', content: '...' }, showMenu: false };
 	},
 	_onChange: function _onChange(newText) {
 		var actual = Object.assign({}, this.state.actual, { content: newText });
@@ -29433,11 +29433,19 @@ var Editor = React.createClass({
 	_changeDoc: function _changeDoc(id) {
 		this.setState({ actual: this.state.data[id] });
 	},
-	_showLoadInput: function _showLoadInput() {
-		this.setState({ showLoadInput: !this.state.showLoadInput });
+	_showMenu: function _showMenu() {
+		this.setState({ showMenu: !this.state.showMenu });
 	},
 	render: function render() {
-		return React.createElement('div', null, React.createElement('div', { className: 'editorHeader' }, React.createElement(ListeDocuments, { docs: this.state.data, addDoc: this._addDoc, changeDoc: this._changeDoc }), React.createElement('input', { type: 'text', value: this.state.actual.title, onChange: this._changeTitle, className: 'titleInput' })), React.createElement('div', { className: 'view', dangerouslySetInnerHTML: this.rawMarkup() }), React.createElement('div', { className: 'editor' }, React.createElement(CMBox, { onChange: this._onChange, defaultValue: this.state.actual.content, value: this.state.actual.content })), React.createElement('div', { className: 'fileBox' }, React.createElement(DownloadFile, { doc: this.state.actual }), React.createElement('button', { onClick: this._showLoadInput }, 'Importer un fichier'), this.state.showLoadInput ? React.createElement(LoadFileForm, { addFile: this._addDoc }) : ''));
+		return React.createElement('div', null, React.createElement('div', { className: 'editorHeader' }, React.createElement('button', { className: 'menuBtn', onClick: this._showMenu }, 'Menu'), this.state.showMenu ? React.createElement(Menu, { docs: this.state.data, addDoc: this._addDoc, changeDoc: this._changeDoc, doc: this.state.actual }) : '', React.createElement('input', { type: 'text', value: this.state.actual.title, onChange: this._changeTitle, className: 'titleInput' })), React.createElement('div', { className: 'view', dangerouslySetInnerHTML: this.rawMarkup() }), React.createElement('div', { className: 'editor' }, React.createElement(CMBox, { onChange: this._onChange, defaultValue: this.state.actual.content, value: this.state.actual.content })), React.createElement('div', { className: 'fileBox' }));
+	}
+});
+
+var Menu = React.createClass({
+	displayName: 'Menu',
+
+	render: function render() {
+		return React.createElement('div', { className: 'menu' }, React.createElement(DownloadFile, { doc: this.props.doc }), React.createElement(ListeDocuments, { docs: this.props.docs, addDoc: this.props.addDoc, changeDoc: this.props.changeDoc }), React.createElement(LoadFileForm, { addFile: this.props.addDoc }));
 	}
 });
 
@@ -29445,17 +29453,18 @@ var ListeDocuments = React.createClass({
 	displayName: 'ListeDocuments',
 
 	_changeDoc: function _changeDoc(e) {
+		e.preventDefault;
 		this.props.changeDoc(e.target.id);
 	},
 	render: function render() {
 		var _this2 = this;
 
 		var DocsNodes = this.props.docs.map(function (doc) {
-			return React.createElement('button', { onClick: _this2._changeDoc, key: doc.id, id: doc.id }, doc.title);
+			return React.createElement('li', { key: doc.id }, React.createElement('a', { href: '', id: doc.id, onClick: _this2._changeDoc }, doc.title));
 		});
-		return React.createElement('div', { className: 'textList' }, DocsNodes, React.createElement('button', { onClick: function onClick() {
+		return React.createElement('ul', { className: 'textList' }, React.createElement('li', null, React.createElement('button', { onClick: function onClick() {
 				return _this2.props.addDoc({ title: 'Document sans titre', content: '...' });
-			} }, '+'));
+			} }, 'Nouveau Fichier')), DocsNodes);
 	}
 });
 
@@ -29487,7 +29496,7 @@ var LoadFileForm = React.createClass({
 	displayName: 'LoadFileForm',
 
 	getInitialState: function getInitialState() {
-		return { fileError: false };
+		return { fileError: false, showLoadInput: false };
 	},
 	_handleFile: function _handleFile(e) {
 		var file = e.target.files[0];
@@ -29506,12 +29515,15 @@ var LoadFileForm = React.createClass({
 	_hideErrorMessage: function _hideErrorMessage() {
 		this.setState({ fileError: false });
 	},
+	_showLoadInput: function _showLoadInput() {
+		this.setState({ showLoadInput: !this.state.showLoadInput });
+	},
 	render: function render() {
 		var ErrorMessage = void 0;
 		if (this.state.fileError) {
 			ErrorMessage = React.createElement('p', { className: 'error', onClick: this._hideErrorMessage }, 'Mauvais format de fichier');
 		}
-		return React.createElement('form', null, ErrorMessage, React.createElement('input', { type: 'file', accept: 'text/*, .md', onChange: this._handleFile }));
+		return React.createElement('div', null, React.createElement('button', { onClick: this._showLoadInput }, 'Importer un fichier'), ErrorMessage, React.createElement('form', null, this.state.showLoadInput ? React.createElement('input', { type: 'file', accept: 'text/*, .md', onChange: this._handleFile }) : ''));
 	}
 });
 

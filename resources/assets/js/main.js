@@ -35,7 +35,7 @@ const Editor = React.createClass({
 		if(storedTexts) {
 			return({ data : storedTexts, actual: storedTexts[0] });	
 		}
-		return({ data : [], actual: { id: 0, title: 'Document sans titre', content: '...' }, showLoadInput: false });
+		return({ data : [], actual: { id: 0, title: 'Document sans titre', content: '...' }, showMenu: false });
 	},
 	_onChange: function(newText){
 		let actual = Object.assign({}, this.state.actual, { content: newText });
@@ -67,14 +67,15 @@ const Editor = React.createClass({
 	_changeDoc: function(id){
 		this.setState({actual : this.state.data[id]});
 	},
-	_showLoadInput: function(){
-		this.setState({showLoadInput: !this.state.showLoadInput});
+	_showMenu: function(){
+		this.setState({showMenu: !this.state.showMenu});
 	},
 	render: function(){
 		return(
 			<div>
 				<div className="editorHeader">
-					<ListeDocuments docs={this.state.data} addDoc={this._addDoc} changeDoc={this._changeDoc} />
+					<button className="menuBtn" onClick={this._showMenu}>Menu</button>
+					{this.state.showMenu? <Menu docs={this.state.data} addDoc={this._addDoc} changeDoc={this._changeDoc} doc={this.state.actual} />: ''}
 					<input type="text" value={this.state.actual.title} onChange={this._changeTitle} className="titleInput"/>
 				</div>
 				<div className="view" dangerouslySetInnerHTML={this.rawMarkup()}></div>
@@ -82,30 +83,40 @@ const Editor = React.createClass({
 					<CMBox onChange={this._onChange}  defaultValue={this.state.actual.content} value={this.state.actual.content} />
 				</div>
 				<div className="fileBox">
-					<DownloadFile doc={this.state.actual} />
-					<button onClick={this._showLoadInput}>Importer un fichier</button>
-					{this.state.showLoadInput?<LoadFileForm addFile={this._addDoc}/> : ''}
 				</div>
 			</div>
 		);
 	}
 });
 
+const Menu = React.createClass({
+	render: function(){
+		return(
+			<div className="menu">
+				<DownloadFile doc={this.props.doc} />
+				<ListeDocuments docs={this.props.docs} addDoc={this.props.addDoc} changeDoc={this.props.changeDoc} />
+				<LoadFileForm addFile={this.props.addDoc}/>
+			</div>
+		);
+	}
+})
+
 const ListeDocuments = React.createClass({
 	_changeDoc: function(e){
+		e.preventDefault;
 		this.props.changeDoc(e.target.id);
 	},
 	render: function(){
 		var DocsNodes = this.props.docs.map((doc) => {
 	      return (
-	        <button onClick={this._changeDoc} key={doc.id} id={doc.id}>{doc.title}</button>
+	        <li key={doc.id}><a href="" id={doc.id} onClick={this._changeDoc}>{doc.title}</a></li>
 	      );
 	    });
 	    return(
-	    	<div className="textList">
+	    	<ul className="textList">
+	    		<li><button onClick={() => this.props.addDoc({title: 'Document sans titre', content: '...'})}>Nouveau Fichier</button></li>
 	    		{DocsNodes}
-	    		<button onClick={() => this.props.addDoc({title: 'Document sans titre', content: '...'})}>+</button>
-	    	</div>
+	    	</ul>
 	    );
 	}
 });
@@ -135,7 +146,7 @@ const DownloadFile = React.createClass({
 
 const LoadFileForm = React.createClass({
 	getInitialState: function(){
-		return ({ fileError: false });
+		return ({ fileError: false, showLoadInput: false });
 	},
 	_handleFile: function(e){
 		let file = e.target.files[0];
@@ -154,16 +165,22 @@ const LoadFileForm = React.createClass({
 	_hideErrorMessage: function(){
 		this.setState({ fileError: false });
 	},
+	_showLoadInput: function() {
+		this.setState({ showLoadInput: !this.state.showLoadInput });
+	},
 	render: function(){
 		let ErrorMessage ;
 		if(this.state.fileError) {
 			ErrorMessage = (<p className="error" onClick={this._hideErrorMessage}>Mauvais format de fichier</p>);
 		}
 		return(
+			<div>
+			<button onClick={this._showLoadInput}>Importer un fichier</button>
+			{ErrorMessage}
 			<form>
-				{ErrorMessage}
-				<input type="file" accept="text/*, .md" onChange={this._handleFile} />
+				{this.state.showLoadInput?<input type="file" accept="text/*, .md" onChange={this._handleFile} /> : ''}
 			</form>
+			</div>
 		);
 	}
 });
