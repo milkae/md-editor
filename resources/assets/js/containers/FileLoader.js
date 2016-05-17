@@ -3,7 +3,7 @@ import LoadInput from '../components/LoadInput'
 
 const FileLoader = React.createClass({
 	getInitialState: function(){
-		return({showError: false});
+		return({showError: false, showLoadInput: false});
 	},
 	_handleFile: function(e){
 		let file = e.target.files[0];
@@ -22,11 +22,15 @@ const FileLoader = React.createClass({
 	_hideError: function(){
 		this.setState({showError: false});
 	},
+	showLoadInput: function(){
+		this.setState({ showLoadInput: !this.state.showLoadInput })
+	},
 	render: function(){
 		return(
 		<div>
 			{this.state.showError?<p className="errorMessage" onClick={this._hideError}>Mauvais format de fichier</p>:''}
-			<LoadInput onChange={this._handleFile}>Importer un fichier</LoadInput>
+			<button onClick={this.showLoadInput}>Importer un fichier</button>
+			{this.state.showLoadInput?<LoadInput onChange={this._handleFile}/> : ''}
 		</div>
 		)
 	}	

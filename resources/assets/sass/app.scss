@@ -1,6 +1,13 @@
 // @import "node_modules/bootstrap-sass/assets/stylesheets/bootstrap";
 @import 'node_modules/codemirror/lib/codemirror';
-@import 'node_modules/codemirror/theme/monokai';
+html, body {
+	margin: 0;
+	padding: 0;
+}
+body {
+	font-family: 'Muli', sans-serif;
+	background: #FFBC42;
+}
 .view, .editor {
 	display: inline-block;
 	width : 50%;
@@ -8,25 +15,70 @@
 	height : 600px;
 	box-sizing: border-box;
 }
-.view div{
-	box-sizing: border-box;
-	padding : 1%;
+.view{
+	padding : 0 0.5em;
 	overflow: auto;
-	height : 600px;
-	background: #EEEEEE;
+	background: #EFFFE9;
 }
 .CodeMirror {
 	height : 600px;
 }
-header h1, .view > h2, .editor > h2 {
-	text-align: center;
+
+.editorHeader {
+	padding: 0.5%;
+	background-color: #218380;
 }
-body {
-	background: #5D5C61;
+
+a {
+	color: #000;
 }
-header h1 {
-	color: #BF0727;
+.titleInput {
+	display: block;
+	width : 40%;
+	text-align : center;
+	margin:auto;
+	padding: 0.3em;
+	margin-bottom: 1em;
+	font-size: 1.3em;
 }
-.editor > h2, .view > h2 {
+button {
+	padding: 0.3em 0.5em;
+	border-radius: 0.2em;
+	margin-bottom : 0.5em;
+	border-style: none;
+	background-color: #2EC4B6;
+	color: #EFFFE9;
+}
+
+input[type= 'file']{
+	margin: 1em 0;
+}
+.fileBox {
+	margin-top: 0.5em;
+}
+ul li {
+	cursor: pointer;
 	color: #fff;
+	font-size: 0.9em;
+	list-style-type: none;
+	border-bottom : 1px solid #8F2D56;
+	padding: 0.3em;
+}
+ul {
+	padding: 0.1em;
+}
+.menu {
+	position: absolute;
+	background: #1E6F6C;
+	width: 20%;
+	padding: 1em;
+	overflow: auto;
+}
+.menuBtn {
+	border-style: none;
+	background-color: #D81159;
+	margin: auto;
+	color: #EFFFE9;
+	font-size: 1em;
+	padding: 0.5em 2em;
 }

@@ -1,17 +1,17 @@
 import React from 'react'
-import TextButton from './TextButton'
+import TextLink from './TextLink'
 
-const TextsList = ({ onTextBtnClick, addDoc, texts }) => (
-	<div>
+const TextsList = ({ onTextClick, addDoc, texts }) => (
+	<ul className="textsList">
+		<button onClick={() => addDoc({ title: 'Document sans titre', content: '...'})}>Nouveau fichier</button>
 		{texts.map(text =>
-			<TextButton
+			<TextLink
 			key={text.id}
 			{...text}
-			onClick={() => onTextBtnClick(text.id)}
+			onClick={() => onTextClick(text.id)}
 			/>	
 		)}
-		<button onClick={() => addDoc({ title: 'Document sans titre', content: '...'})}>+</button>
-	</div>
+	</ul>
 )
 
 

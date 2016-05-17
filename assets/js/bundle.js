@@ -39250,9 +39250,8 @@ function _interopRequireDefault(obj) {
 }
 
 var LoadInput = function LoadInput(_ref) {
-	var children = _ref.children;
 	var onChange = _ref.onChange;
-	return _react2.default.createElement("div", null, _react2.default.createElement("p", null, children), _react2.default.createElement("input", { type: "file", accept: "text/*, .md", onChange: onChange }));
+	return _react2.default.createElement("input", { type: "file", accept: "text/*, .md", onChange: onChange });
 };
 
 exports.default = LoadInput;
@@ -39300,14 +39299,14 @@ function _interopRequireDefault(obj) {
 	return obj && obj.__esModule ? obj : { default: obj };
 }
 
-var TextButton = function TextButton(_ref) {
+var TextLink = function TextLink(_ref) {
 	var onClick = _ref.onClick;
 	var id = _ref.id;
 	var title = _ref.title;
-	return _react2.default.createElement('button', { id: id, onClick: onClick }, title);
+	return _react2.default.createElement('li', { id: id, onClick: onClick }, title);
 };
 
-exports.default = TextButton;
+exports.default = TextLink;
 
 },{"react":163}],168:[function(require,module,exports){
 'use strict';
@@ -39330,41 +39329,41 @@ var _react = require('react');
 
 var _react2 = _interopRequireDefault(_react);
 
-var _TextButton = require('./TextButton');
+var _TextLink = require('./TextLink');
 
-var _TextButton2 = _interopRequireDefault(_TextButton);
+var _TextLink2 = _interopRequireDefault(_TextLink);
 
 function _interopRequireDefault(obj) {
 	return obj && obj.__esModule ? obj : { default: obj };
 }
 
 var TextsList = function TextsList(_ref) {
-	var onTextBtnClick = _ref.onTextBtnClick;
+	var onTextClick = _ref.onTextClick;
 	var addDoc = _ref.addDoc;
 	var texts = _ref.texts;
-	return _react2.default.createElement('div', null, texts.map(function (text) {
-		return _react2.default.createElement(_TextButton2.default, _extends({
+	return _react2.default.createElement('ul', { className: 'textsList' }, _react2.default.createElement('button', { onClick: function onClick() {
+			return addDoc({ title: 'Document sans titre', content: '...' });
+		} }, 'Nouveau fichier'), texts.map(function (text) {
+		return _react2.default.createElement(_TextLink2.default, _extends({
 			key: text.id
 		}, text, {
 			onClick: function onClick() {
-				return onTextBtnClick(text.id);
+				return onTextClick(text.id);
 			}
 		}));
-	}), _react2.default.createElement('button', { onClick: function onClick() {
-			return addDoc({ title: 'Document sans titre', content: '...' });
-		} }, '+'));
+	}));
 };
 
 exports.default = TextsList;
 
-},{"./TextButton":167,"react":163}],169:[function(require,module,exports){
-'use strict';
+},{"./TextLink":167,"react":163}],169:[function(require,module,exports){
+"use strict";
 
 Object.defineProperty(exports, "__esModule", {
 	value: true
 });
 
-var _react = require('react');
+var _react = require("react");
 
 var _react2 = _interopRequireDefault(_react);
 
@@ -39374,7 +39373,7 @@ function _interopRequireDefault(obj) {
 
 var View = function View(_ref) {
 	var content = _ref.content;
-	return _react2.default.createElement('div', null, _react2.default.createElement('h2', null, 'Aperçu'), _react2.default.createElement('div', { dangerouslySetInnerHTML: { __html: marked(content, { sanitize: true }) } }));
+	return _react2.default.createElement("div", { className: "view", dangerouslySetInnerHTML: { __html: marked(content, { sanitize: true }) } });
 };
 View.PropTypes = {
 	content: _react.PropTypes.string
@@ -39435,7 +39434,7 @@ var FileLoader = _react2.default.createClass({
 	displayName: 'FileLoader',
 
 	getInitialState: function getInitialState() {
-		return { showError: false };
+		return { showError: false, showLoadInput: false };
 	},
 	_handleFile: function _handleFile(e) {
 		var file = e.target.files[0];
@@ -39454,8 +39453,11 @@ var FileLoader = _react2.default.createClass({
 	_hideError: function _hideError() {
 		this.setState({ showError: false });
 	},
+	showLoadInput: function showLoadInput() {
+		this.setState({ showLoadInput: !this.state.showLoadInput });
+	},
 	render: function render() {
-		return _react2.default.createElement('div', null, this.state.showError ? _react2.default.createElement('p', { className: 'errorMessage', onClick: this._hideError }, 'Mauvais format de fichier') : '', _react2.default.createElement(_LoadInput2.default, { onChange: this._handleFile }, 'Importer un fichier'));
+		return _react2.default.createElement('div', null, this.state.showError ? _react2.default.createElement('p', { className: 'errorMessage', onClick: this._hideError }, 'Mauvais format de fichier') : '', _react2.default.createElement('button', { onClick: this.showLoadInput }, 'Importer un fichier'), this.state.showLoadInput ? _react2.default.createElement(_LoadInput2.default, { onChange: this._handleFile }) : '');
 	}
 });
 
@@ -39464,25 +39466,55 @@ exports.default = FileLoader;
 },{"../components/LoadInput":165,"react":163}],172:[function(require,module,exports){
 'use strict';
 
-var _CodeMirrorEditor = require('./components/CodeMirrorEditor');
+Object.defineProperty(exports, "__esModule", {
+	value: true
+});
 
-var _CodeMirrorEditor2 = _interopRequireDefault(_CodeMirrorEditor);
+var _react = require('react');
 
-var _TextsList = require('./components/TextsList');
+var _react2 = _interopRequireDefault(_react);
+
+var _FileDownloader = require('./FileDownloader');
+
+var _FileDownloader2 = _interopRequireDefault(_FileDownloader);
+
+var _FileLoader = require('./FileLoader');
+
+var _FileLoader2 = _interopRequireDefault(_FileLoader);
+
+var _TextsList = require('../components/TextsList');
 
 var _TextsList2 = _interopRequireDefault(_TextsList);
 
-var _FileLoader = require('./containers/FileLoader');
+function _interopRequireDefault(obj) {
+	return obj && obj.__esModule ? obj : { default: obj };
+}
 
-var _FileLoader2 = _interopRequireDefault(_FileLoader);
+var Menu = function Menu(_ref) {
+	var actual = _ref.actual;
+	var storeFile = _ref.storeFile;
+	var texts = _ref.texts;
+	var addDoc = _ref.addDoc;
+	var onTextClick = _ref.onTextClick;
+	return _react2.default.createElement('div', { className: 'menu' }, _react2.default.createElement(_FileDownloader2.default, { actual: actual }), _react2.default.createElement(_TextsList2.default, { texts: texts, addDoc: addDoc, onTextClick: onTextClick }), _react2.default.createElement(_FileLoader2.default, { storeFile: storeFile }));
+};
+
+exports.default = Menu;
+
+},{"../components/TextsList":168,"./FileDownloader":170,"./FileLoader":171,"react":163}],173:[function(require,module,exports){
+'use strict';
+
+var _CodeMirrorEditor = require('./components/CodeMirrorEditor');
+
+var _CodeMirrorEditor2 = _interopRequireDefault(_CodeMirrorEditor);
 
 var _View = require('./components/View');
 
 var _View2 = _interopRequireDefault(_View);
 
-var _FileDownloader = require('./containers/FileDownloader');
+var _Menu = require('./containers/Menu');
 
-var _FileDownloader2 = _interopRequireDefault(_FileDownloader);
+var _Menu2 = _interopRequireDefault(_Menu);
 
 function _interopRequireDefault(obj) {
 	return obj && obj.__esModule ? obj : { default: obj };
@@ -39508,7 +39540,7 @@ var Editor = React.createClass({
 	displayName: 'Editor',
 
 	getInitialState: function getInitialState() {
-		return { data: [{ id: 0, title: 'Document sans titre', content: '...' }], actual: { id: 0, title: 'Document sans titre', content: '...' }, online: false };
+		return { data: [{ id: 0, title: 'Document sans titre', content: '...' }], actual: { id: 0, title: 'Document sans titre', content: '...' }, online: false, showMenu: false };
 	},
 	componentDidMount: function componentDidMount() {
 		/* Chargement des events IO */
@@ -39592,13 +39624,22 @@ var Editor = React.createClass({
 	_changeDoc: function _changeDoc(id) {
 		this.setState({ actual: this.state.data[id] });
 	},
+	_toggleMenu: function _toggleMenu() {
+		this.setState({ showMenu: !this.state.showMenu });
+	},
 	render: function render() {
-		return React.createElement('div', null, React.createElement(_FileLoader2.default, { storeFile: this._addDoc }), React.createElement(_FileDownloader2.default, { actual: this.state.actual }), React.createElement(_TextsList2.default, { texts: this.state.data, addDoc: this._addDoc, onTextBtnClick: this._changeDoc }), React.createElement('input', { type: 'text', value: this.state.actual.title, onChange: this._changeTitle }), React.createElement(_View2.default, { content: this.state.actual.content }), React.createElement('div', { className: 'editor' }, React.createElement('h2', null, 'Editeur'), React.createElement(_CodeMirrorEditor2.default, { onChange: this._onChange, value: this.state.actual.content })));
+		return React.createElement('div', null, React.createElement('div', { className: 'editorHeader' }, React.createElement('button', { onClick: this._toggleMenu, className: 'menuBtn' }, 'Menu'), this.state.showMenu ? React.createElement(_Menu2.default, {
+			storeFile: this._addDoc,
+			actual: this.state.actual,
+			texts: this.state.data,
+			addDoc: this._addDoc,
+			onTextClick: this._changeDoc
+		}) : '', React.createElement('input', { type: 'text', value: this.state.actual.title, onChange: this._changeTitle, className: 'titleInput' })), React.createElement(_View2.default, { className: 'view', content: this.state.actual.content }), React.createElement('div', { className: 'editor' }, React.createElement(_CodeMirrorEditor2.default, { onChange: this._onChange, value: this.state.actual.content })));
 	}
 });
 
 ReactDOM.render(React.createElement(Editor, null), document.getElementById('main'));
 
-},{"./components/CodeMirrorEditor":164,"./components/TextsList":168,"./components/View":169,"./containers/FileDownloader":170,"./containers/FileLoader":171,"jquery":5,"react":163,"react-dom":7}]},{},[172]);
+},{"./components/CodeMirrorEditor":164,"./components/View":169,"./containers/Menu":172,"jquery":5,"react":163,"react-dom":7}]},{},[173]);
 
 //# sourceMappingURL=bundle.js.map

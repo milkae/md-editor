@@ -5,17 +5,15 @@ const ReactDOM = require('react-dom');
 const $ = require('jquery');
 
 import CodeMirrorEditor from './components/CodeMirrorEditor'
-import TextsList from './components/TextsList'
-import FileLoader from './containers/FileLoader'
 import View from './components/View'
-import FileDownloader from './containers/FileDownloader'
+import Menu from './containers/Menu'
 
 /* Composant CodeMirror */
 
 
 const Editor = React.createClass({
 	getInitialState: function(){
-		return { data : [{ id: 0, title: 'Document sans titre', content: '...' }], actual: { id: 0, title: 'Document sans titre', content: '...' }, online: false };
+		return { data : [{ id: 0, title: 'Document sans titre', content: '...' }], actual: { id: 0, title: 'Document sans titre', content: '...' }, online: false, showMenu: false };
 	},
 	componentDidMount: function(){
 		/* Chargement des events IO */
@@ -103,16 +101,27 @@ const Editor = React.createClass({
 	_changeDoc: function(id){
 		this.setState({actual : this.state.data[id]});
 	},
+	_toggleMenu: function(){
+		this.setState({ showMenu: !this.state.showMenu })
+	},
 	render: function(){
 		return(
 			<div>
-				<FileLoader storeFile={this._addDoc} />
-				<FileDownloader actual={this.state.actual}/>
-				<TextsList texts={this.state.data} addDoc={this._addDoc} onTextBtnClick={this._changeDoc} />
-				<input type="text" value={this.state.actual.title} onChange={this._changeTitle} />
-				<View content={this.state.actual.content} />
+				<div className="editorHeader">
+					<button onClick={this._toggleMenu} className="menuBtn">Menu</button>
+					{this.state.showMenu?
+						<Menu 
+						storeFile={this._addDoc} 
+						actual={this.state.actual} 
+						texts={this.state.data} 
+						addDoc={this._addDoc} 
+						onTextClick={this._changeDoc} 
+						/> : ''}
+					
+					<input type="text" value={this.state.actual.title} onChange={this._changeTitle} className="titleInput"/>
+				</div>
+				<View className="view" content={this.state.actual.content} />
 				<div className="editor">
-					<h2>Editeur</h2>
 					<CodeMirrorEditor onChange={this._onChange} value={this.state.actual.content} />
 				</div>
 			</div>
