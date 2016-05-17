@@ -2,37 +2,20 @@
 
 const React = require('react');
 const ReactDOM = require('react-dom');
-const CodeMirror = require('codemirror');
 const $ = require('jquery');
-require('codemirror/mode/markdown/markdown');
+
+import CodeMirrorEditor from './components/CodeMirrorEditor'
+import TextsList from './components/TextsList'
+import FileLoader from './containers/FileLoader'
+import View from './components/View'
+import FileDownloader from './containers/FileDownloader'
 
 /* Composant CodeMirror */
-const CMBox = React.createClass({
-	componentDidMount() {
-	    this.cm = CodeMirror(this.refs.editor, {
-	      value: this.props.value,
-	      mode: 'markdown',
-	      theme: 'monokai',
-	      lineNumbers: true,
-	      styleActiveLine: true
-	    });
-	    this.cm.on('change', (cm) => {
-	      this.props.onChange(cm.getValue());
-	    });
-	  },
-	  componentWillReceiveProps(nextProps) {
-	    if (nextProps.value !== this.cm.getValue()) {
-			this.cm.setValue(nextProps.value);
-	    }
-	  },
-	  render() {
-	    return <div ref='editor'/>
-	  }
-});
+
 
 const Editor = React.createClass({
 	getInitialState: function(){
-		return { data : [], actual: { id: 0, title: 'Document sans titre', content: '...' }, online: false };
+		return { data : [{ id: 0, title: 'Document sans titre', content: '...' }], actual: { id: 0, title: 'Document sans titre', content: '...' }, online: false };
 	},
 	componentDidMount: function(){
 		/* Chargement des events IO */
@@ -77,7 +60,7 @@ const Editor = React.createClass({
 		}
 	},
 	/* Sauvegarde texte */
-	_onlineStoreText: function(texts) {
+	_onlineStoreTexts: function(texts) {
 		if(this.xhr !== undefined){
 			this.xhr.abort();
 		}
@@ -88,53 +71,34 @@ const Editor = React.createClass({
 			data : { data: texts }
 		});
 	},
-	_offlineStoreData: function(actual){
-		let storedTexts = this.state.data;
-		console.log(storedTexts);
-		storedTexts[actual.id] = actual;
+	_offlineStoreData: function(storedTexts){
 		localStorage.setItem('storedTexts', JSON.stringify(storedTexts));
-		this.setState({ data: storedTexts, actual: actual });
 	},
 	/* Ecouteurs onChange */
 	_onChange: function(newText) {
-		let actual = { id: this.state.actual.id, title: this.state.actual.title, content: newText};
-		if(this.state.online){
-			this._onlineHandleChange(actual);
-		} else {
-			this._offlineStoreData(actual);
-		}
-	},
-	_onlineHandleChange: function(actual) {
-		let storedTexts = this.state.data;
-		storedTexts[actual.id] = actual;
-		this._onlineStoreText(storedTexts);
-		this.setState({ data: storedTexts, actual: actual });
+		this._handleChange({ content: newText })
 	},
 	_changeTitle: function(e){
-		let actual = { id: this.state.actual.id, title: e.target.value, content: this.state.actual.content};
-		if(this.state.online){
-			this._onlineHandleChange(actual);
-		} else {
-			this._offlineStoreData(actual);
-		}
+		this._handleChange({ title: e.target.value });
 	},
-	_rawMarkup: function(){
-		return { __html: marked(this.state.actual.content, {sanitize: true}) };
+	_handleChange: function(newProp) {
+		let actual = Object.assign({}, this.state.actual, newProp);
+		let storedTexts = [
+			...this.state.data.slice(0, Number(actual.id)),
+			actual,
+			...this.state.data.slice(Number(actual.id) + 1)
+			];
+		if(this.state.online){
+			this._onlineStoreTexts(storedTexts);
+		} else {
+			this._offlineStoreData(storedTexts);
+		}
+		this.setState({ data: storedTexts, actual: actual });
 	},
 	_addDoc: function(doc){
-		let texts = this.state.data;
-		texts.push(doc);
+		doc.id = this.state.data.length;
+		let texts = [...this.state.data, doc];
 		this.setState({ data: texts, actual: doc});
-	},
-	_newDoc: function(){
-		let id = this.state.data.length;
-		let doc = {id: id, title: 'Document sans titre', content: '...'};
-		this._addDoc(doc);
-	},
-	_loadDoc: function(doc){
-		let id = this.state.data.length;
-		doc.id = id;
-		this._addDoc(doc);
 	},
 	_changeDoc: function(id){
 		this.setState({actual : this.state.data[id]});
@@ -142,95 +106,16 @@ const Editor = React.createClass({
 	render: function(){
 		return(
 			<div>
-				<div className="editorHeader">
-					<FileLoader storeFileContent={this._loadDoc} />
-					<FileDownloader doc={this.state.actual}/>
-				</div>
-				<ListeDocuments docs={this.state.data} addDoc={this._newDoc} changeDoc={this._changeDoc} />
-				<div className="view">
+				<FileLoader storeFile={this._addDoc} />
+				<FileDownloader actual={this.state.actual}/>
+				<TextsList texts={this.state.data} addDoc={this._addDoc} onTextBtnClick={this._changeDoc} />
 				<input type="text" value={this.state.actual.title} onChange={this._changeTitle} />
-					<h2>Aperçu</h2>
-					<div dangerouslySetInnerHTML={this._rawMarkup()}></div>
-				</div>
+				<View content={this.state.actual.content} />
 				<div className="editor">
 					<h2>Editeur</h2>
-					<CMBox onChange={this._onChange} value={this.state.actual.content} />
+					<CodeMirrorEditor onChange={this._onChange} value={this.state.actual.content} />
 				</div>
 			</div>
-		);
-	}
-});
-
-const ListeDocuments = React.createClass({
-	_changeDoc: function(e){
-		this.props.changeDoc(e.target.id);
-	},
-	render: function(){
-		var DocsNodes = this.props.docs.map((doc) => {
-	      return (
-	        <button onClick={this._changeDoc} key={doc.id} id={doc.id}>{doc.title}</button>
-	      );
-	    });
-	    return(
-	    	<div>
-	    		{DocsNodes}
-	    		<button onClick={this.props.addDoc} >+</button>
-	    	</div>
-	    );
-	}
-});
-
-const FileLoader = React.createClass({
-	getInitialState: function(){
-		return({showError: false});
-	},
-	_handleFile: function(e){
-		let file = e.target.files[0];
-		let textType = /^text\//;
-		if(textType.test(file.type)){
-			let reader = new FileReader();
-			reader.readAsText(file);
-			reader.onload = function(e){
-				this.props.storeFileContent({ title: file.name, content: e.target.result });
-			}.bind(this);
-			this.setState({showError: false});
-		} else {
-			this.setState({showError: true});
-		}
-	},
-	_hideError: function(){
-		this.setState({showError: false});
-	},
-	render: function(){
-		return(
-			<div>
-				{this.state.showError?<p className="errorMessage" onClick={this._hideError}>Mauvais format de fichier</p>:''}
-				<p>Importer un fichier</p>
-				<input type="file" accept="text/*, .md" onChange={this._handleFile} />
-			</div>
-		);
-	}
-});
-
-const FileDownloader = React.createClass({
-	getInitialState: function(){
-		return({href: ''});
-	},
-	componentWillMount:function(){
-  	    this._createUrl(this.props.doc.content);
-	},
-	componentWillUpdate(nextProps) {
-  	    if (nextProps.doc.content !== this.props.doc.content) {
-  	    	this._createUrl(nextProps.doc.content);
-		}
-	},
-	_createUrl: function(props){
-		let text = new Blob([props], {type: 'text/markdown'});
-		this.setState({href: URL.createObjectURL(text)});
-	},
-	render: function(){
-		return(
-			<a href={this.state.href} download={this.props.doc.title + '.md'}>Télécharger au format .md</a>
 		);
 	}
 });
