@@ -404,26 +404,15 @@ body {
   height: 600px;
   box-sizing: border-box; }
 
-.view div {
+.view {
   box-sizing: border-box;
-  padding: 1%;
+  padding: 0 0.5em;
   overflow: auto;
   height: 600px;
   background: #EEEEEE; }
 
 .CodeMirror {
   height: 600px; }
-
-header h1, .view > h2, .editor > h2 {
-  text-align: center; }
-
-header h1 {
-  color: #BF0727;
-  font-size: 3em;
-  font-family: 'Josefin Sans'; }
-
-.editor > h2, .view > h2 {
-  color: #fff; }
 
 header {
   background-color: #E6E4E4;
@@ -436,10 +425,40 @@ header {
   text-align: right; }
 
 .editorHeader form {
-  text-align: left;
-  width: 40%; }
+  text-align: right; }
 
-.editorHeader a {
+.fileBox a {
+  float: right;
   color: #AF1637; }
+
+.titleInput {
+  display: block;
+  width: 40%;
+  text-align: center;
+  margin: 0.1em auto;
+  padding: 0.3em;
+  font-size: 1.3em; }
+
+.textList button {
+  padding: 0.5em 1.5em;
+  border-radius: 0.2em;
+  margin: 0.2em 0.2em;
+  border-style: none;
+  background-color: #fff; }
+
+.textList {
+  text-align: left; }
+
+input[type='file'] {
+  margin: 1em 0; }
+
+.fileBox {
+  margin-top: 0.5em; }
+
+.fileBox button {
+  border-radius: 0.2em;
+  border-style: none;
+  padding: 0.3em 0.5em;
+  background-color: #fff; }
 
 /*# sourceMappingURL=style.css.map */

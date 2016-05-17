@@ -29403,19 +29403,19 @@ var Editor = React.createClass({
 	getInitialState: function getInitialState() {
 		var storedTexts = JSON.parse(localStorage.getItem('storedTexts'));
 		if (storedTexts) {
-			return { data: storedTexts, actual: storedTexts[0], fileError: false };
+			return { data: storedTexts, actual: storedTexts[0] };
 		}
-		return { data: [], actual: { id: 0, title: 'Document sans titre', content: '...' }, fileError: false };
+		return { data: [], actual: { id: 0, title: 'Document sans titre', content: '...' }, showLoadInput: false };
 	},
 	_onChange: function _onChange(newText) {
-		var actual = { id: this.state.actual.id, title: this.state.actual.title, content: newText };
+		var actual = Object.assign({}, this.state.actual, { content: newText });
 		this._storeData(actual);
 	},
 	_addToTextsTab: function _addToTextsTab(item) {
 		return [].concat(_toConsumableArray(this.state.data), [item]);
 	},
 	_storeData: function _storeData(actual) {
-		var storedTexts = this._addToTextsTab(actual);
+		var storedTexts = [].concat(_toConsumableArray(this.state.data.slice(0, Number(actual.id))), [actual], _toConsumableArray(this.state.data.slice(Number(actual.id) + 1)));
 		localStorage.setItem('storedTexts', JSON.stringify(storedTexts));
 		this.setState({ data: storedTexts, actual: actual });
 	},
@@ -29426,38 +29426,18 @@ var Editor = React.createClass({
 	rawMarkup: function rawMarkup() {
 		return { __html: marked(this.state.actual.content, { sanitize: true }) };
 	},
-	_handleFile: function _handleFile(e) {
-		var file = e.target.files[0];
-		var textType = /^text\//;
-		if (textType.test(file.type)) {
-			var reader = new FileReader();
-			reader.readAsText(file);
-			reader.onload = function (e) {
-				var texts = this._addToTextsTab({ id: id, content: e.target.result, title: file.name });
-				this.setState({ data: texts, actual: texts[id], fileError: false });
-			}.bind(this);
-		} else {
-			this.setState({ fileError: true });
-		}
-	},
-	_addDoc: function _addDoc() {
-		var texts = this.state.data;
-		var id = texts.length;
-		texts[id] = { id: id, title: 'Document sans titre', content: '...' };
-		this.setState({ data: texts, actual: texts[id] });
-	},
-	_hideErrorMessage: function _hideErrorMessage() {
-		this.setState({ fileError: false });
+	_addDoc: function _addDoc(file) {
+		file.id = this.state.data.length;
+		this._storeData(file);
 	},
 	_changeDoc: function _changeDoc(id) {
 		this.setState({ actual: this.state.data[id] });
 	},
+	_showLoadInput: function _showLoadInput() {
+		this.setState({ showLoadInput: !this.state.showLoadInput });
+	},
 	render: function render() {
-		var ErrorMessage = void 0;
-		if (this.state.fileError) {
-			ErrorMessage = React.createElement('p', { className: 'error', onClick: this._hideErrorMessage }, 'Mauvais format de fichier');
-		}
-		return React.createElement('div', null, React.createElement('div', { className: 'editorHeader' }, ErrorMessage, React.createElement(LoadFileForm, { handleFile: this._handleFile }), React.createElement(DownloadFile, { doc: this.state.actual })), React.createElement(ListeDocuments, { docs: this.state.data, addDoc: this._addDoc, changeDoc: this._changeDoc }), React.createElement('div', { className: 'view' }, React.createElement('h2', null, 'Aperçu'), React.createElement('div', { dangerouslySetInnerHTML: this.rawMarkup() })), React.createElement('div', { className: 'editor' }, React.createElement('h2', null, 'Editeur'), React.createElement('input', { type: 'text', value: this.state.actual.title, onChange: this._changeTitle }), React.createElement(CMBox, { onChange: this._onChange, defaultValue: this.state.actual.content, value: this.state.actual.content })));
+		return React.createElement('div', null, React.createElement('div', { className: 'editorHeader' }, React.createElement(ListeDocuments, { docs: this.state.data, addDoc: this._addDoc, changeDoc: this._changeDoc }), React.createElement('input', { type: 'text', value: this.state.actual.title, onChange: this._changeTitle, className: 'titleInput' })), React.createElement('div', { className: 'view', dangerouslySetInnerHTML: this.rawMarkup() }), React.createElement('div', { className: 'editor' }, React.createElement(CMBox, { onChange: this._onChange, defaultValue: this.state.actual.content, value: this.state.actual.content })), React.createElement('div', { className: 'fileBox' }, React.createElement(DownloadFile, { doc: this.state.actual }), React.createElement('button', { onClick: this._showLoadInput }, 'Importer un fichier'), this.state.showLoadInput ? React.createElement(LoadFileForm, { addFile: this._addDoc }) : ''));
 	}
 });
 
@@ -29473,7 +29453,9 @@ var ListeDocuments = React.createClass({
 		var DocsNodes = this.props.docs.map(function (doc) {
 			return React.createElement('button', { onClick: _this2._changeDoc, key: doc.id, id: doc.id }, doc.title);
 		});
-		return React.createElement('div', null, DocsNodes, React.createElement('button', { onClick: this.props.addDoc }, '+'));
+		return React.createElement('div', { className: 'textList' }, DocsNodes, React.createElement('button', { onClick: function onClick() {
+				return _this2.props.addDoc({ title: 'Document sans titre', content: '...' });
+			} }, '+'));
 	}
 });
 
@@ -29504,8 +29486,32 @@ var DownloadFile = React.createClass({
 var LoadFileForm = React.createClass({
 	displayName: 'LoadFileForm',
 
+	getInitialState: function getInitialState() {
+		return { fileError: false };
+	},
+	_handleFile: function _handleFile(e) {
+		var file = e.target.files[0];
+		var textType = /^text\//;
+		if (textType.test(file.type)) {
+			var reader = new FileReader();
+			reader.readAsText(file);
+			reader.onload = function (e) {
+				this.props.addFile({ content: e.target.result, title: file.name });
+				this.setState({ fileError: false });
+			}.bind(this);
+		} else {
+			this.setState({ fileError: true });
+		}
+	},
+	_hideErrorMessage: function _hideErrorMessage() {
+		this.setState({ fileError: false });
+	},
 	render: function render() {
-		return React.createElement('form', null, React.createElement('p', null, 'Importer un fichier'), React.createElement('input', { type: 'file', accept: 'text/*, .md', onChange: this.props.handleFile }));
+		var ErrorMessage = void 0;
+		if (this.state.fileError) {
+			ErrorMessage = React.createElement('p', { className: 'error', onClick: this._hideErrorMessage }, 'Mauvais format de fichier');
+		}
+		return React.createElement('form', null, ErrorMessage, React.createElement('input', { type: 'file', accept: 'text/*, .md', onChange: this._handleFile }));
 	}
 });
 

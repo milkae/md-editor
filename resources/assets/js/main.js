@@ -33,19 +33,23 @@ const Editor = React.createClass({
 	getInitialState: function(){
 		let storedTexts = JSON.parse(localStorage.getItem('storedTexts'));
 		if(storedTexts) {
-			return({ data : storedTexts, actual: storedTexts[0], fileError: false });	
+			return({ data : storedTexts, actual: storedTexts[0] });	
 		}
-		return({ data : [], actual: { id: 0, title: 'Document sans titre', content: '...' }, fileError: false });
+		return({ data : [], actual: { id: 0, title: 'Document sans titre', content: '...' }, showLoadInput: false });
 	},
 	_onChange: function(newText){
-		let actual = { id: this.state.actual.id, title: this.state.actual.title, content: newText};
+		let actual = Object.assign({}, this.state.actual, { content: newText });
 		this._storeData(actual);
 	},
 	_addToTextsTab: function(item) {
 		return [...this.state.data, item];
 	},
 	_storeData: function(actual){
-		let storedTexts = this._addToTextsTab(actual);
+		let storedTexts = [
+			...this.state.data.slice(0, Number(actual.id)),
+			actual,
+			...this.state.data.slice(Number(actual.id) + 1)
+		];
 		localStorage.setItem('storedTexts', JSON.stringify(storedTexts));
 		this.setState({ data: storedTexts, actual: actual });
 	},
@@ -56,53 +60,31 @@ const Editor = React.createClass({
 	rawMarkup: function(){
 		return { __html: marked(this.state.actual.content, {sanitize: true}) };
 	},
-	_handleFile: function(e){
-		let file = e.target.files[0];
-		let textType = /^text\//;
-		if(textType.test(file.type)){
-			let reader = new FileReader();
-			reader.readAsText(file);
-			reader.onload = function(e){
-				let texts = this._addToTextsTab({ id: id, content: e.target.result, title: file.name });
-				this.setState({ data: texts, actual : texts[id], fileError: false });
-			}.bind(this);
-		} else {
-			this.setState({ fileError: true });
-		}
-	},
-	_addDoc: function(){
-		let texts = this.state.data;
-		let id = texts.length;
-		texts[id] = {id: id, title: 'Document sans titre', content: '...'};
-		this.setState({data : texts, actual : texts[id]});
-	},
-	_hideErrorMessage: function(){
-		this.setState({ fileError: false });
+	_addDoc: function(file){
+		file.id = this.state.data.length;
+		this._storeData(file);
 	},
 	_changeDoc: function(id){
 		this.setState({actual : this.state.data[id]});
 	},
+	_showLoadInput: function(){
+		this.setState({showLoadInput: !this.state.showLoadInput});
+	},
 	render: function(){
-		let ErrorMessage ;
-		if(this.state.fileError) {
-			ErrorMessage = (<p className="error" onClick={this._hideErrorMessage}>Mauvais format de fichier</p>);
-		}
 		return(
 			<div>
 				<div className="editorHeader">
-				{ErrorMessage}
-				<LoadFileForm handleFile={this._handleFile}/>
-				<DownloadFile doc={this.state.actual} />
+					<ListeDocuments docs={this.state.data} addDoc={this._addDoc} changeDoc={this._changeDoc} />
+					<input type="text" value={this.state.actual.title} onChange={this._changeTitle} className="titleInput"/>
 				</div>
-				<ListeDocuments docs={this.state.data} addDoc={this._addDoc} changeDoc={this._changeDoc} />
-				<div className="view">
-					<h2>Aperçu</h2>
-					<div dangerouslySetInnerHTML={this.rawMarkup()}></div>
-				</div>
+				<div className="view" dangerouslySetInnerHTML={this.rawMarkup()}></div>
 				<div className="editor">
-					<h2>Editeur</h2>
-					<input type="text" value={this.state.actual.title} onChange={this._changeTitle} />
 					<CMBox onChange={this._onChange}  defaultValue={this.state.actual.content} value={this.state.actual.content} />
+				</div>
+				<div className="fileBox">
+					<DownloadFile doc={this.state.actual} />
+					<button onClick={this._showLoadInput}>Importer un fichier</button>
+					{this.state.showLoadInput?<LoadFileForm addFile={this._addDoc}/> : ''}
 				</div>
 			</div>
 		);
@@ -120,9 +102,9 @@ const ListeDocuments = React.createClass({
 	      );
 	    });
 	    return(
-	    	<div>
+	    	<div className="textList">
 	    		{DocsNodes}
-	    		<button onClick={this.props.addDoc} >+</button>
+	    		<button onClick={() => this.props.addDoc({title: 'Document sans titre', content: '...'})}>+</button>
 	    	</div>
 	    );
 	}
@@ -152,11 +134,35 @@ const DownloadFile = React.createClass({
 });
 
 const LoadFileForm = React.createClass({
+	getInitialState: function(){
+		return ({ fileError: false });
+	},
+	_handleFile: function(e){
+		let file = e.target.files[0];
+		let textType = /^text\//;
+		if(textType.test(file.type)){
+			let reader = new FileReader();
+			reader.readAsText(file);
+			reader.onload = function(e){
+				this.props.addFile({ content: e.target.result, title: file.name });
+				this.setState({ fileError: false });
+			}.bind(this);
+		} else {
+			this.setState({ fileError: true });
+		}
+	},
+	_hideErrorMessage: function(){
+		this.setState({ fileError: false });
+	},
 	render: function(){
+		let ErrorMessage ;
+		if(this.state.fileError) {
+			ErrorMessage = (<p className="error" onClick={this._hideErrorMessage}>Mauvais format de fichier</p>);
+		}
 		return(
 			<form>
-				<p>Importer un fichier</p>
-				<input type="file" accept="text/*, .md" onChange={this.props.handleFile} />
+				{ErrorMessage}
+				<input type="file" accept="text/*, .md" onChange={this._handleFile} />
 			</form>
 		);
 	}
