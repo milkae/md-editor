@@ -29429,9 +29429,10 @@ var Editor = React.createClass({
 	_addDoc: function _addDoc(file) {
 		file.id = this.state.data.length;
 		this._storeData(file);
+		this.setState({ showMenu: false });
 	},
 	_changeDoc: function _changeDoc(id) {
-		this.setState({ actual: this.state.data[id] });
+		this.setState({ actual: this.state.data[id], showMenu: false });
 	},
 	_showMenu: function _showMenu() {
 		this.setState({ showMenu: !this.state.showMenu });
