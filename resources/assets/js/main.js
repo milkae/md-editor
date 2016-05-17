@@ -109,7 +109,7 @@ const ListeDocuments = React.createClass({
 	render: function(){
 		var DocsNodes = this.props.docs.map((doc) => {
 	      return (
-	        <li key={doc.id}><a href="" id={doc.id} onClick={this._changeDoc}>{doc.title}</a></li>
+	        <li key={doc.id} id={doc.id} onClick={this._changeDoc}>{doc.title}</li>
 	      );
 	    });
 	    return(

@@ -51,13 +51,6 @@ button {
 	background-color: #2EC4B6;
 	color: #EFFFE9;
 }
-.textList {
-	text-align: left;
-}
-.textList a {
-	text-decoration: none;
-	color: #fff;
-}
 input[type= 'file']{
 	margin: 1em 0;
 }
@@ -65,6 +58,8 @@ input[type= 'file']{
 	margin-top: 0.5em;
 }
 ul li {
+	cursor: pointer;
+	color: #fff;
 	font-size: 0.9em;
 	list-style-type: none;
 	border-bottom : 1px solid #8F2D56;

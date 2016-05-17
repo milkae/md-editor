@@ -29460,7 +29460,7 @@ var ListeDocuments = React.createClass({
 		var _this2 = this;
 
 		var DocsNodes = this.props.docs.map(function (doc) {
-			return React.createElement('li', { key: doc.id }, React.createElement('a', { href: '', id: doc.id, onClick: _this2._changeDoc }, doc.title));
+			return React.createElement('li', { key: doc.id, id: doc.id, onClick: _this2._changeDoc }, doc.title);
 		});
 		return React.createElement('ul', { className: 'textList' }, React.createElement('li', null, React.createElement('button', { onClick: function onClick() {
 				return _this2.props.addDoc({ title: 'Document sans titre', content: '...' });
