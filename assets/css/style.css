@@ -405,7 +405,7 @@ body {
   display: inline-block;
   width: 50%;
   vertical-align: top;
-  height: 600px;
+  height: 85vh;
   box-sizing: border-box; }
 
 .view {
@@ -414,11 +414,14 @@ body {
   background: #EFFFE9; }
 
 .CodeMirror {
-  height: 600px; }
+  box-sizing: border-box;
+  height: 85vh; }
 
 .editorHeader {
   padding: 0.5%;
-  background-color: #218380; }
+  background-color: #218380;
+  min-height: 15vh;
+  box-sizing: border-box; }
 
 a {
   color: #000; }
@@ -429,7 +432,6 @@ a {
   text-align: center;
   margin: auto;
   padding: 0.3em;
-  margin-bottom: 1em;
   font-size: 1.3em; }
 
 button {
