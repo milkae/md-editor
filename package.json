@@ -1,4 +1,7 @@
 {
+  "name"    : "md-editor",
+  "version" : "0.1.0",
+  "main"    : "main.js",
   "private": true,
   "scripts": {
     "prod": "gulp --production",
