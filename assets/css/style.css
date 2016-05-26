@@ -423,9 +423,6 @@ body {
   padding: 0.5%;
   background-color: #218380; }
 
-a {
-  color: #000; }
-
 .titleInput {
   display: block;
   width: 40%;
@@ -434,30 +431,11 @@ a {
   padding: 0.3em;
   font-size: 1.3em; }
 
-button {
-  padding: 0.3em 0.5em;
-  border-radius: 0.2em;
-  margin-bottom: 0.5em;
-  border-style: none;
-  background-color: #2EC4B6;
-  color: #EFFFE9; }
-
 input[type='file'] {
   margin: 1em 0; }
 
 .fileBox {
   margin-top: 0.5em; }
-
-ul li {
-  cursor: pointer;
-  color: #fff;
-  font-size: 0.9em;
-  list-style-type: none;
-  border-bottom: 1px solid #8F2D56;
-  padding: 0.3em; }
-
-ul {
-  padding: 0.1em; }
 
 .menu {
   position: absolute;
@@ -465,8 +443,27 @@ ul {
   width: 20%;
   padding: 1em;
   overflow: auto; }
+  .menu a {
+    color: #000; }
+  .menu button {
+    padding: 0.3em 0.5em;
+    border-radius: 0.2em;
+    margin-bottom: 0.5em;
+    border-style: none;
+    background-color: #2EC4B6;
+    color: #EFFFE9; }
+  .menu ul {
+    padding: 0.1em; }
+    .menu ul li {
+      cursor: pointer;
+      color: #fff;
+      font-size: 0.9em;
+      list-style-type: none;
+      border-bottom: 1px solid #8F2D56;
+      padding: 0.3em; }
 
 .menuBtn {
+  border-radius: 0.2em;
   border-style: none;
   background-color: #D81159;
   margin: auto;
