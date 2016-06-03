@@ -4,13 +4,14 @@ require('codemirror/mode/markdown/markdown');
 
 const CodeMirrorEditor = React.createClass({
 	componentDidMount() {
-	    this.cm = CodeMirror(this.refs.editor, {
+	    this.cm = CodeMirror(this._myAwesomeInput, {
 	      value: this.props.value,
 	      mode: 'markdown',
 	      theme: 'monokai',
 	      lineNumbers: true,
 	      styleActiveLine: true
 	    });
+	    
 	    this.cm.on('change', (cm) => {
 	      this.props.onChange(cm.getValue());
 	    });
@@ -21,7 +22,7 @@ const CodeMirrorEditor = React.createClass({
 	    }
 	  },
 	  render() {
-	    return <div ref='editor'/>
+	    return <div ref={(ref)=>{this._myAwesomeInput = ref}}/>
 	  }
 });
 
